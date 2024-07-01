@@ -1,7 +1,9 @@
 import numpy as np
 
-class RK4:
-    def __init__(self, v0, gamma0, h0):
+class RK4withLayeredAtmosphere:
+    def __init__(self, vehicleObject, v0, gamma0, h0):
+        self.vehicleObject = vehicleObject
+
         self.v0 = v0 # m/s
         self.gamma0 = np.radians(gamma0) # degrees to radians
         self.h0 = h0 # m
@@ -16,18 +18,18 @@ class RK4:
         self.R = 287 # J/kg-K
         self.MW0 = 28.9644 # kg/kmol
 
-class RK4withLayeredAtmosphere(RK4):
-    def __init__(self, v0, gamma0, h0):
-        super().__init__(v0, gamma0, h0)
-
     def dVdt(self, vel, gam, alt):
-        pass
+        val = - ( self.density(alt) * vel ^ 2 ) / ( 2 * self.vehicleObject.ballisticCoeff ) - self.gravity(alt) * np.sin(gam)
+        return val
 
     def dGamdt(self, vel, gam, alt):
-        pass
+        term1 = (vel * np.cos(gam)) / (self.Re + alt) 
+        term2 = (self.density(alt) * vel) / (2 * self.vehicleObject.ballisticCoeff) * self.vehicleObject.LDrat * np.cos(self.vehicleObject.sigma) 
+        term3 = - (self.gravity(alt) * np.cos(gam)) / vel
+        return term1 + term2 + term3
 
     def dhdt(self, vel, gam):
-        pass
+        return vel * np.sin(gam)
 
     def density(self, alt):
 
@@ -81,6 +83,7 @@ class RK4withLayeredAtmosphere(RK4):
         else:
             ## pressure
             b = 3.31 * 10**-7 # 1/m
+
             # power = - ( ( self.g0 / ( self.R * li * 10**-3 ) ) * ( 1 + b * ( tmi / ( li * 10**-3 ) - layerFloor * 10**3 ) ) )
             # exponential = ( ( self.g0 * b ) / ( self.R * li * 10**-3 ) * ( alt - layerFloor * 10**3 ) )
             # tm = tmi + li * ( altkm - layerFloor )
@@ -91,6 +94,7 @@ class RK4withLayeredAtmosphere(RK4):
             t = T[layer - 7]
             mwi = MWi[layer - 7]
 
+            # TODO check if this is right
             rhoi = ( pi * mwi ) / ( self.Rbar * t )
 
             # TODO is this R or Rbar
@@ -105,3 +109,6 @@ class RK4withLayeredAtmosphere(RK4):
 
         # inverse square gravity law
         return self.g0 * ( self.Re / ( self.Re + alt ) )**2
+    
+if __name__ == "__main__":
+    pass
