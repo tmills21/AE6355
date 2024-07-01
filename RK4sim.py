@@ -1,4 +1,7 @@
 import numpy as np
+import matplotlib.pyplot as plt
+
+from vehicleGeometry import vehicle
 
 class RK4withLayeredAtmosphere:
     def __init__(self, vehicleObject, v0, gamma0, h0):
@@ -19,7 +22,7 @@ class RK4withLayeredAtmosphere:
         self.MW0 = 28.9644 # kg/kmol
 
     def dVdt(self, vel, gam, alt):
-        val = - ( self.density(alt) * vel ^ 2 ) / ( 2 * self.vehicleObject.ballisticCoeff ) - self.gravity(alt) * np.sin(gam)
+        val = - ( self.density(alt) * vel ** 2 ) / ( 2 * self.vehicleObject.ballisticCoeff ) - self.gravity(alt) * np.sin(gam)
         return val
 
     def dGamdt(self, vel, gam, alt):
@@ -33,15 +36,20 @@ class RK4withLayeredAtmosphere:
 
     def density(self, alt):
 
+        # # exponential atmosphere
+        # rho = 1.225 * np.exp(-alt / self.H)
+        # return rho
+
         # convert altitude from m to km
         altkm = alt / 10**3
 
         # TODO check tops of intervals for 0-86
-        # TODO return an error if bad input?
-        layers = [(0, 11.0102), (11.0102, 20.0631), (20.0631, 32.1619), (32.1619, 47.3501), (47.3501, 51.4125), (51.4125, 71.802), (71.802, 86), (86, 100), (100, 110), (110, 120), (120, 150)]
+        # TODO return an error if bad input? reasonable will be less than 0 at some point
+        layers = [(0, 11.0102), (11.0102, 20.0631), (20.0631, 32.1619), (32.1619, 47.3501), (47.3501, 51.4125), 
+                  (51.4125, 71.802), (71.802, 86), (86, 100), (100, 110), (110, 120), (120, 150)]
         def getLayer(layers, altkm):
             for i, (bottom, top) in enumerate(layers):
-                if bottom < altkm <= top:
+                if bottom <= abs(altkm) <= top:
                     return i
                 
         layer = getLayer(layers, altkm)
@@ -70,20 +78,20 @@ class RK4withLayeredAtmosphere:
 
             if li:
                 base = tmi / tm
-                exponent = ( self.g0p * self.MW0 ) / ( self.Rbar * li )
+                exponent = ( self.g0p * self.MW0 ) / ( self.Rbar * 10**-3 * li )
                 p = pi * base**exponent
 
             else:
-                exponent = ( - self.g0p * self.MW0 * ( altmprime - layerFloor ) ) / ( self.Rbar * tmi )
+                exponent = ( - self.g0p * self.MW0 * ( altmprime - layerFloor * 10**3 ) ) / ( self.Rbar * tmi )
                 p = pi * np.exp(exponent)
 
             rho = ( p * self.MW0 ) / ( self.Rbar * tm )
 
         # 1962 Standard Atmosphere
         else:
-            ## pressure
             b = 3.31 * 10**-7 # 1/m
 
+            # # pressure
             # power = - ( ( self.g0 / ( self.R * li * 10**-3 ) ) * ( 1 + b * ( tmi / ( li * 10**-3 ) - layerFloor * 10**3 ) ) )
             # exponential = ( ( self.g0 * b ) / ( self.R * li * 10**-3 ) * ( alt - layerFloor * 10**3 ) )
             # tm = tmi + li * ( altkm - layerFloor )
@@ -110,5 +118,65 @@ class RK4withLayeredAtmosphere:
         # inverse square gravity law
         return self.g0 * ( self.Re / ( self.Re + alt ) )**2
     
+    def runSim(self):
+        v = self.v0
+        gam = self.gamma0
+        h = self.h0
+
+        vHistory = np.array([v])
+        gamHistory = np.array([gam])
+        hHistory = np.array([h])
+
+        while ( h > 0 ):
+            k1 = self.dVdt(v, gam, h)
+            L1 = self.dGamdt(v, gam, h)
+            m1 = self.dhdt(v, gam)
+
+            k2 = self.dVdt(v + self.timeStep / 2 * k1, gam + self.timeStep / 2 * L1, h + self.timeStep / 2 * m1)
+            L2 = self.dGamdt(v + self.timeStep / 2 * k1, gam + self.timeStep / 2 * L1, h + self.timeStep / 2 * m1)
+            m2 = self.dhdt(v + self.timeStep / 2 * k1, gam + self.timeStep / 2 * L1)
+
+            k3 = self.dVdt(v + self.timeStep / 2 * k2, gam + self.timeStep / 2 * L2, h + self.timeStep / 2 * m2)
+            L3 = self.dGamdt(v + self.timeStep / 2 * k2, gam + self.timeStep / 2 * L2, h + self.timeStep / 2 * m2)
+            m3 = self.dhdt(v + self.timeStep / 2 * k2, gam + self.timeStep / 2 * L2)
+
+            k4 = self.dVdt(v + self.timeStep * k3, gam + self.timeStep * L3, h + self.timeStep * m3)
+            L4 = self.dGamdt(v + self.timeStep * k3, gam + self.timeStep * L3, h + self.timeStep * m3)
+            m4 = self.dhdt(v + self.timeStep * k3, gam + self.timeStep * L3)
+
+            T4A = k1 + 2 * k2 + 2 * k3 + k4
+            T4B = L1 + 2 * L2 + 2 * L3 + L4
+            T4C = m1 + 2 * m2 + 2 * m3 + m4
+
+            v += self.timeStep / 6 * T4A
+            gam += self.timeStep / 6 * T4B
+            h += self.timeStep / 6 * T4C
+
+            vHistory = np.append(vHistory, v)
+            gamHistory = np.append(gamHistory, gam)
+            hHistory = np.append(hHistory, h)
+
+        plt.plot(vHistory, hHistory)
+        plt.xlabel('Velocity (m/s)')
+        plt.ylabel('Altitude (m)')
+        plt.show()
+
+        return 'done'
+
+    
 if __name__ == "__main__":
-    pass
+    stardust = vehicle(46, 0.8128, 0.2202, 60, 0)
+    test = RK4withLayeredAtmosphere(stardust, 11067.63087, -10, 120000)
+
+    altitude = np.arange(0, 150000, 1)
+    density = np.zeros_like(altitude)
+
+    for i, alt in enumerate(altitude):
+        density[i] = test.density(alt)
+
+    plt.plot(density, altitude)
+    plt.xlabel('density')
+    plt.ylabel('Altitude (m)')
+    plt.show()
+
+    # print(test.density(49000))

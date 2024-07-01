@@ -1,13 +1,13 @@
-import math
+import numpy as np
 
 class vehicle:
     def __init__(self, mass, diameter, noseRadius, deltac, sigma):
         self.mass = mass # kg
         self.diamter = diameter # m
         self.nodeRadius = noseRadius # m
-        self.deltac = math.radians(deltac) # degrees to radians
+        self.deltac = np.radians(deltac) # degrees to radians
         self.LDrat = 0 # purely ballistic TODO change
-        self.sigma = math.radians(sigma)
+        self.sigma = np.radians(sigma)
 
         self.ballisticCoeff = self.computeBallisticCoeff()
 
