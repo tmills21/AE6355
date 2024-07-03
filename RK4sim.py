@@ -44,7 +44,7 @@ class RK4withLayeredAtmosphere:
         altkm = alt / 10**3
 
         # TODO check tops of intervals for 0-86
-        # TODO return an error if bad input? reasonable will be less than 0 at some point
+        # TODO return an error if bad input?
         layers = [(0, 11.0102), (11.0102, 20.0631), (20.0631, 32.1619), (32.1619, 47.3501), (47.3501, 51.4125), 
                   (51.4125, 71.802), (71.802, 86), (86, 100), (100, 110), (110, 120), (120, 150)]
         def getLayer(layers, altkm):
