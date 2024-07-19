@@ -12,8 +12,11 @@ class RK4withLayeredAtmosphere:
         self.h0 = h0 # m
 
         self.timeStep = 0.1 # s
-        self.H = 7250 # m for Earth
+
+        # for Earth
+        self.H = 7250 # m
         self.Re = 6378130 # m
+        self.hatm = 120000 # m
         self.mu = 398600441800000 # m^3/s^2
         self.g0 = 9.806 # m/s^2
         self.g0p = 9.806 # m^2/s^2-m'
@@ -118,7 +121,7 @@ class RK4withLayeredAtmosphere:
         # inverse square gravity law
         return self.g0 * ( self.Re / ( self.Re + alt ) )**2
     
-    def runSim(self):
+    def runSim(self, abortOnSkip = False, abortOnNmax = False, nmaxLim = 0):
         v = self.v0
         gam = self.gamma0
         h = self.h0
@@ -152,31 +155,46 @@ class RK4withLayeredAtmosphere:
             gam += self.timeStep / 6 * T4B
             h += self.timeStep / 6 * T4C
 
+            if abortOnSkip:
+                if gam > 0:
+                    return [False]
+
             vHistory = np.append(vHistory, v)
             gamHistory = np.append(gamHistory, gam)
             hHistory = np.append(hHistory, h)
 
-        plt.plot(vHistory, hHistory)
-        plt.xlabel('Velocity (m/s)')
-        plt.ylabel('Altitude (m)')
-        plt.show()
+            if abortOnNmax:
+                decel = ( vHistory[-1] - vHistory[-2] ) / self.timeStep
+                decelGs = decel / self.g0
+                if decelGs < nmaxLim:
+                    return [False]
 
-        return 'done'
+        if abortOnSkip or abortOnNmax:
+            return [True]
+
+        else:
+            plt.plot(vHistory, hHistory)
+            plt.xlabel('Velocity (m/s)')
+            plt.ylabel('Altitude (m)')
+            plt.show()
+
+            return 'done'
 
     
 if __name__ == "__main__":
     stardust = vehicle(46, 0.8128, 0.2202, 60, 0)
-    test = RK4withLayeredAtmosphere(stardust, 11067.63087, -10, 120000)
+    test = RK4withLayeredAtmosphere(stardust, 8977.441267279422, -8.270241244214445, 120000)
+    simulation_result = test.runSim(abortOnNmax = True, nmaxLim = -30)
 
-    altitude = np.arange(0, 150000, 1)
-    density = np.zeros_like(altitude)
+    # altitude = np.arange(0, 150000, 1)
+    # density = np.zeros_like(altitude)
 
-    for i, alt in enumerate(altitude):
-        density[i] = test.density(alt)
+    # for i, alt in enumerate(altitude):
+    #     density[i] = test.density(alt)
 
-    plt.plot(density, altitude)
-    plt.xlabel('density')
-    plt.ylabel('Altitude (m)')
-    plt.show()
+    # plt.plot(density, altitude)
+    # plt.xlabel('density')
+    # plt.ylabel('Altitude (m)')
+    # plt.show()
 
     # print(test.density(49000))

@@ -22,7 +22,7 @@ class vehicle:
         self.ballisticCoeff = self.computeBallisticCoeff()
 
     def computeAref(self):
-        return np.pi * self.nodeRadius**2
+        return np.pi * max(self.nodeRadius, self.coneRadius)**2
     
     def computeCN(self):
         
@@ -47,4 +47,4 @@ class vehicle:
         return self.mass / ( self.CD * self.Aref )
     
 if __name__ == "__main__":
-    pass
+    stardust = vehicle(46, 0.8128, 0.2202, 60, 0)

@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from vehicleGeometry import vehicle
 from RK4sim import RK4withLayeredAtmosphere
+from corridors import deorbit
 
 def run_eoms():
     try:
@@ -32,8 +33,61 @@ def run_eoms():
         print("Enter valid number")
 
 def populate_entry_corridor():
-    entry_rdo.delete(0, tk.END)
-    entry_rdo.insert(0, "Hello, Tkinter!")
+    try:
+        mass = float(mass_var.get())
+        coneDia = float(coned_var.get())
+        noseRa = float(noser_var.get())
+        deltc = float(conea_var.get())
+        banka = float(banka_var.get())
+
+        print(f"Mass: {mass}, Cone diameter: {coneDia}, Nose radius: {noseRa}, Cone angle: {deltc}, Bank angle: {banka}")
+
+        v0 = float(vel0_var.get())
+        gam0 = float(gam0_var.get())
+        h0 = float(h0_var.get())
+
+        # print(f"Velocity0: {v0}, Gam0: {gam0}, Altitude0: {h0}")
+
+        # Create vehicle object
+        stardust = vehicle(mass, coneDia, noseRa, deltc, banka)
+
+        # Run simulation
+        toIntegrate = RK4withLayeredAtmosphere(stardust, v0, gam0, h0)
+
+        ecc = float(e_var.get())
+        hp = float(pa_var.get())
+        nmaxlim = float(nmax_var.get())
+        vedes = ve_var.get()
+        if vedes != '':
+            vedes = float(ve_var.get())
+
+        print(f"Eccentricty: {ecc}, Periapsis altitude: {hp}, Max Deceleration limit: {nmaxlim}, Desired entry velocity: {vedes}")
+
+        orb = deorbit(stardust, toIntegrate, ecc, hp, nmaxlim, vedes)
+        [vatm, minDVgamma, rD, deltav, undershootGamma, overshootGamma] = orb.computeCorridor()
+
+        print('Corridor found!')
+
+        entry_rvm.delete(0, tk.END)
+        entry_rvm.insert(0, str(vatm))
+
+        entry_rgm.delete(0, tk.END)
+        entry_rgm.insert(0, str(minDVgamma))
+
+        entry_rdm.delete(0, tk.END)
+        entry_rdm.insert(0, str(rD))
+
+        entry_dvm.delete(0, tk.END)
+        entry_dvm.insert(0, str(deltav))
+
+        entry_rgu.delete(0, tk.END)
+        entry_rgu.insert(0, str(undershootGamma))
+        
+        entry_rgo.delete(0, tk.END)
+        entry_rgo.insert(0, str(overshootGamma))
+
+    except ValueError as e:
+        print("Enter valid number")
 
 
 # Create the main window
@@ -41,7 +95,7 @@ root = tk.Tk()
 root.title("AE 6355: Planetary Entry, Descent, and Landing")
 
 # Size window (w x h)
-root.geometry("770x580")
+root.geometry("820x580")
 
 # Create notebook
 notebook = ttk.Notebook(root)
@@ -156,96 +210,82 @@ label_meters.grid(row=2, column=2, padx=5, pady=10, sticky=tk.W)
 heading_label3 = tk.Label(tab2, text="Enter Deorbit Parameters", font=("Arial", 14, "bold"))
 heading_label3.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
 
-label_td = tk.Label(tab2, text="Departure true anomaly:") # theta_D
-label_td.grid(row=4, column=0, padx=5, pady=10, sticky=tk.W)
-td_var = tk.StringVar(value="180")
-entry_td = tk.Entry(tab2, textvariable=td_var, width=12)
-entry_td.grid(row=4, column=1, padx=5, pady=10)
-label_deg = tk.Label(tab2, text="degrees")
-label_deg.grid(row=4, column=2, padx=5, pady=10, sticky=tk.W)
-
 label_nmax = tk.Label(tab2, text="Maximum deceleration:")
-label_nmax.grid(row=5, column=0, padx=5, pady=10, sticky=tk.W)
-nmax_var = tk.StringVar(value="10")
+label_nmax.grid(row=4, column=0, padx=5, pady=10, sticky=tk.W)
+nmax_var = tk.StringVar(value="30")
 entry_nmax = tk.Entry(tab2, textvariable=nmax_var, width=12)
-entry_nmax.grid(row=5, column=1, padx=5, pady=10)
+entry_nmax.grid(row=4, column=1, padx=5, pady=10)
 label_gs = tk.Label(tab2, text="g's")
-label_gs.grid(row=5, column=2, padx=5, pady=10, sticky=tk.W)
+label_gs.grid(row=4, column=2, padx=5, pady=10, sticky=tk.W)
+
+label_ve = tk.Label(tab2, text="Desired entry velocity:") # theta_D
+label_ve.grid(row=5, column=0, padx=5, pady=10, sticky=tk.W)
+ve_var = tk.StringVar(value="")
+entry_ve = tk.Entry(tab2, textvariable=ve_var, width=12)
+entry_ve.grid(row=5, column=1, padx=5, pady=10)
+label_mps = tk.Label(tab2, text="m/s")
+label_mps.grid(row=5, column=2, padx=5, pady=10, sticky=tk.W)
+label_disc = tk.Label(tab2, text="chosen internally if blank", font=("Arial", 10))
+label_disc.grid(row=6, column=1, padx=5, pady=0, sticky=tk.W)
 
 # Vertical line, tab 2
 separator = ttk.Separator(tab2, orient="vertical")
 separator.grid(row=0, column=3, rowspan=10, sticky="ns", padx=5)
 
 # Content right, tab 2
-heading_label2 = tk.Label(tab2, text="OUTPUT: Overshoot", font=("Arial", 14, "bold"))
+heading_label2 = tk.Label(tab2, text="OUTPUT: Min Delta V Solution", font=("Arial", 14, "bold"))
 heading_label2.grid(row=0, column=4, columnspan=2, padx=5, pady=10)
 
-label_rdo = tk.Label(tab2, text="Deorbit position:")
-label_rdo.grid(row=1, column=4, padx=5, pady=10, sticky=tk.W)
-rdo_var = tk.StringVar(value="")
-entry_rdo = tk.Entry(tab2, textvariable=rdo_var, width=12)
-entry_rdo.grid(row=1, column=5, padx=5, pady=10)
-label_ms = tk.Label(tab2, text="meters")
+label_rvm = tk.Label(tab2, text="Re-entry velocity:")
+label_rvm.grid(row=1, column=4, padx=5, pady=10, sticky=tk.W)
+rvm_var = tk.StringVar(value="")
+entry_rvm = tk.Entry(tab2, textvariable=rvm_var, width=12)
+entry_rvm.grid(row=1, column=5, padx=5, pady=10)
+label_ms = tk.Label(tab2, text="m/s")
 label_ms.grid(row=1, column=6, padx=5, pady=10, sticky=tk.W)
 
-label_dvo = tk.Label(tab2, text="Change in velocity:")
-label_dvo.grid(row=2, column=4, padx=5, pady=10, sticky=tk.W)
-dvo_var = tk.StringVar(value="")
-entry_dvo = tk.Entry(tab2, textvariable=dvo_var, width=12)
-entry_dvo.grid(row=2, column=5, padx=5, pady=10)
-label_ms = tk.Label(tab2, text="m/s")
-label_ms.grid(row=2, column=6, padx=5, pady=10, sticky=tk.W)
+label_rgm = tk.Label(tab2, text="Re-entry gamma:")
+label_rgm.grid(row=2, column=4, padx=5, pady=10, sticky=tk.W)
+rgm_var = tk.StringVar(value="")
+entry_rgm = tk.Entry(tab2, textvariable=rgm_var, width=12)
+entry_rgm.grid(row=2, column=5, padx=5, pady=10)
+label_deg = tk.Label(tab2, text="degrees")
+label_deg.grid(row=2, column=6, padx=5, pady=10, sticky=tk.W)
 
-label_rvo = tk.Label(tab2, text="Re-entry velocity:")
-label_rvo.grid(row=3, column=4, padx=5, pady=10, sticky=tk.W)
-rvo_var = tk.StringVar(value="")
-entry_rvo = tk.Entry(tab2, textvariable=rvo_var, width=12)
-entry_rvo.grid(row=3, column=5, padx=5, pady=10)
-label_ms = tk.Label(tab2, text="m/s")
+label_rdm = tk.Label(tab2, text="Deorbit position:")
+label_rdm.grid(row=3, column=4, padx=5, pady=10, sticky=tk.W)
+rdm_var = tk.StringVar(value="")
+entry_rdm = tk.Entry(tab2, textvariable=rdm_var, width=12)
+entry_rdm.grid(row=3, column=5, padx=5, pady=10)
+label_ms = tk.Label(tab2, text="meters")
 label_ms.grid(row=3, column=6, padx=5, pady=10, sticky=tk.W)
 
-label_rgo = tk.Label(tab2, text="Re-entry gamma:")
-label_rgo.grid(row=4, column=4, padx=5, pady=10, sticky=tk.W)
-rgo_var = tk.StringVar(value="")
-entry_rgo = tk.Entry(tab2, textvariable=rgo_var, width=12)
-entry_rgo.grid(row=4, column=5, padx=5, pady=10)
-label_deg = tk.Label(tab2, text="degrees")
-label_deg.grid(row=4, column=6, padx=5, pady=10, sticky=tk.W)
+label_dvm = tk.Label(tab2, text="Change in velocity:")
+label_dvm.grid(row=4, column=4, padx=5, pady=10, sticky=tk.W)
+dvm_var = tk.StringVar(value="")
+entry_dvm = tk.Entry(tab2, textvariable=dvm_var, width=12)
+entry_dvm.grid(row=4, column=5, padx=5, pady=10)
+label_ms = tk.Label(tab2, text="m/s")
+label_ms.grid(row=4, column=6, padx=5, pady=10, sticky=tk.W)
 
-heading_label2 = tk.Label(tab2, text="OUTPUT: Undershoot", font=("Arial", 14, "bold"))
+heading_label2 = tk.Label(tab2, text="OUTPUT: Corridor Boundaries", font=("Arial", 14, "bold"))
 heading_label2.grid(row=5, column=4, columnspan=2, padx=5, pady=10)
 
-label_rdu = tk.Label(tab2, text="Deorbit position:")
-label_rdu.grid(row=6, column=4, padx=5, pady=10, sticky=tk.W)
-rdu_var = tk.StringVar(value="")
-entry_rdu = tk.Entry(tab2, textvariable=rdu_var, width=12)
-entry_rdu.grid(row=6, column=5, padx=5, pady=10)
-label_ms = tk.Label(tab2, text="meters")
-label_ms.grid(row=6, column=6, padx=5, pady=10, sticky=tk.W)
-
-label_dvu = tk.Label(tab2, text="Change in velocity:")
-label_dvu.grid(row=7, column=4, padx=5, pady=10, sticky=tk.W)
-dvu_var = tk.StringVar(value="")
-entry_dvu = tk.Entry(tab2, textvariable=dvu_var, width=12)
-entry_dvu.grid(row=7, column=5, padx=5, pady=10)
-label_ms = tk.Label(tab2, text="m/s")
-label_ms.grid(row=7, column=6, padx=5, pady=10, sticky=tk.W)
-
-label_rvu = tk.Label(tab2, text="Re-entry velocity:")
-label_rvu.grid(row=8, column=4, padx=5, pady=10, sticky=tk.W)
-rvu_var = tk.StringVar(value="")
-entry_rvu = tk.Entry(tab2, textvariable=rvu_var, width=12)
-entry_rvu.grid(row=8, column=5, padx=5, pady=10)
-label_ms = tk.Label(tab2, text="m/s")
-label_ms.grid(row=8, column=6, padx=5, pady=10, sticky=tk.W)
-
-label_rgu = tk.Label(tab2, text="Re-entry gamma:")
-label_rgu.grid(row=9, column=4, padx=5, pady=10, sticky=tk.W)
+label_rgu = tk.Label(tab2, text="Undershoot flight path angle:")
+label_rgu.grid(row=6, column=4, padx=5, pady=10, sticky=tk.W)
 rgu_var = tk.StringVar(value="")
 entry_rgu = tk.Entry(tab2, textvariable=rgu_var, width=12)
-entry_rgu.grid(row=9, column=5, padx=5, pady=10)
+entry_rgu.grid(row=6, column=5, padx=5, pady=10)
 label_deg = tk.Label(tab2, text="degrees")
-label_deg.grid(row=9, column=6, padx=5, pady=10, sticky=tk.W)
+label_deg.grid(row=6, column=6, padx=5, pady=10, sticky=tk.W)
+
+label_rgo = tk.Label(tab2, text="Overshoot flight path angle:")
+label_rgo.grid(row=7, column=4, padx=5, pady=10, sticky=tk.W)
+rgo_var = tk.StringVar(value="")
+entry_rgo = tk.Entry(tab2, textvariable=rgo_var, width=12)
+entry_rgo.grid(row=7, column=5, padx=5, pady=10)
+label_deg = tk.Label(tab2, text="degrees")
+label_deg.grid(row=7, column=6, padx=5, pady=10, sticky=tk.W)
 
 # Run button
 button_run = tk.Button(tab2, text="Populate Entry Corridor", command=populate_entry_corridor)
