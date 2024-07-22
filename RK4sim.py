@@ -131,6 +131,7 @@ class RK4withLayeredAtmosphere:
         vHistory = np.array([v])
         gamHistory = np.array([gam])
         hHistory = np.array([h])
+        decelHistory = np.array([])
 
         while ( h > 0 ):
             k1 = self.dVdt(v, gam, h)
@@ -165,11 +166,12 @@ class RK4withLayeredAtmosphere:
             gamHistory = np.append(gamHistory, gam)
             hHistory = np.append(hHistory, h)
 
-            if abortOnNmax:
-                decel = ( vHistory[-1] - vHistory[-2] ) / self.timeStep
-                decelGs = decel / self.g0
-                if decelGs < nmaxLim:
-                    return [False]
+            decel = ( vHistory[-1] - vHistory[-2] ) / self.timeStep
+            decelGs = decel / self.g0
+            decelHistory = np.append(decelHistory, decelGs)
+
+            if abortOnNmax and (decelGs < nmaxLim):
+                return [False]
 
         if abortOnSkip or abortOnNmax:
             return [True]
@@ -183,7 +185,7 @@ class RK4withLayeredAtmosphere:
             ax.set_title(title)
             # plt.show()
 
-            return [vHistory, gamHistory, hHistory, fig]
+            return [vHistory, gamHistory, hHistory, decelHistory, fig]
         
     def SuttonGravesHeat(self, vHistory, hHistory):
         length = len(vHistory)
@@ -224,7 +226,7 @@ class RK4withLayeredAtmosphere:
 
     
 if __name__ == "__main__":
-    stardust = vehicle(46, 0.8128, 0.2202, 60, 0)
+    stardust = vehicle(46, 0.8128, 0.2202, 60, 0, 0, '')
     test = RK4withLayeredAtmosphere(stardust, 8977.441267279422, -8.270241244214445, 120000)
     simulation_result = test.runSim(abortOnNmax = True, nmaxLim = -30)
 
