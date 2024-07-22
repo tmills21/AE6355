@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+import matplotlib.pyplot as plt
 from vehicleGeometry import vehicle
 from RK4sim import RK4withLayeredAtmosphere
 from corridors import deorbit
@@ -11,8 +12,13 @@ def run_eoms():
         noseRa = float(noser_var.get())
         deltc = float(conea_var.get())
         banka = float(banka_var.get())
+        LDrat = float(LDrat_var.get())
 
-        print(f"Mass: {mass}, Cone diameter: {coneDia}, Nose radius: {noseRa}, Cone angle: {deltc}, Bank angle: {banka}")
+        bcoeff = beta_var.get()
+        if bcoeff != '':
+            bcoeff = float(bcoeff)
+
+        print(f"Mass: {mass}, Cone diameter: {coneDia}, Nose radius: {noseRa}, Cone angle: {deltc}, Bank angle: {banka}, LDrat: {LDrat}, Ballistic Coefficient: {bcoeff}")
 
         v0 = float(vel0_var.get())
         gam0 = float(gam0_var.get())
@@ -21,13 +27,22 @@ def run_eoms():
         print(f"Velocity0: {v0}, Gam0: {gam0}, Altitude0: {h0}")
 
         # Create vehicle object
-        stardust = vehicle(mass, coneDia, noseRa, deltc, banka)
+        stardust = vehicle(mass, coneDia, noseRa, deltc, banka, LDrat, bcoeff)
 
         # Run simulation
         toIntegrate = RK4withLayeredAtmosphere(stardust, v0, gam0, h0)
-        simulation_result = toIntegrate.runSim()
+        [vHistory, gamHistory, hHistory, fig] = toIntegrate.runSim(title = 'Gamma = ' + str(gam0) + " degrees and Velocity = " + str(v0) + " m/s")
 
-        print("Simulation Result:", simulation_result)
+        heat = bool(int(heating.get()))
+        print(f"Heating: {heat}")
+
+        if heat:
+            [qstag, fig] = toIntegrate.SuttonGravesHeat(vHistory, hHistory)
+            [qtotal, fig] = toIntegrate.integratedHeat(qstag)
+
+        plt.show()
+
+        print("Simulation Result: done")
 
     except ValueError as e:
         print("Enter valid number")
@@ -39,8 +54,13 @@ def populate_entry_corridor():
         noseRa = float(noser_var.get())
         deltc = float(conea_var.get())
         banka = float(banka_var.get())
+        LDrat = float(LDrat_var.get())
 
-        print(f"Mass: {mass}, Cone diameter: {coneDia}, Nose radius: {noseRa}, Cone angle: {deltc}, Bank angle: {banka}")
+        bcoeff = beta_var.get()
+        if bcoeff != '':
+            bcoeff = float(bcoeff)
+
+        print(f"Mass: {mass}, Cone diameter: {coneDia}, Nose radius: {noseRa}, Cone angle: {deltc}, Bank angle: {banka}, LDrat: {LDrat}, Ballistic Coefficient: {bcoeff}")
 
         v0 = float(vel0_var.get())
         gam0 = float(gam0_var.get())
@@ -49,7 +69,7 @@ def populate_entry_corridor():
         # print(f"Velocity0: {v0}, Gam0: {gam0}, Altitude0: {h0}")
 
         # Create vehicle object
-        stardust = vehicle(mass, coneDia, noseRa, deltc, banka)
+        stardust = vehicle(mass, coneDia, noseRa, deltc, banka, LDrat, bcoeff)
 
         # Run simulation
         toIntegrate = RK4withLayeredAtmosphere(stardust, v0, gam0, h0)
@@ -59,7 +79,7 @@ def populate_entry_corridor():
         nmaxlim = float(nmax_var.get())
         vedes = ve_var.get()
         if vedes != '':
-            vedes = float(ve_var.get())
+            vedes = float(vedes)
 
         print(f"Eccentricty: {ecc}, Periapsis altitude: {hp}, Max Deceleration limit: {nmaxlim}, Desired entry velocity: {vedes}")
 
@@ -86,6 +106,18 @@ def populate_entry_corridor():
         entry_rgo.delete(0, tk.END)
         entry_rgo.insert(0, str(overshootGamma))
 
+        figures = []
+        toIntegrate = RK4withLayeredAtmosphere(stardust, vatm, undershootGamma, h0)
+        figures.append(toIntegrate.runSim(title = 'Undershoot: Gamma = ' + str(undershootGamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
+
+        toIntegrate = RK4withLayeredAtmosphere(stardust, vatm, overshootGamma, h0)
+        figures.append(toIntegrate.runSim(title = 'Undershoot: Gamma = ' + str(overshootGamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
+
+        toIntegrate = RK4withLayeredAtmosphere(stardust, vatm, minDVgamma, h0)
+        figures.append(toIntegrate.runSim(title = 'Min dV Entry: Gamma = ' + str(minDVgamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
+
+        plt.show()
+
     except ValueError as e:
         print("Enter valid number")
 
@@ -95,7 +127,7 @@ root = tk.Tk()
 root.title("AE 6355: Planetary Entry, Descent, and Landing")
 
 # Size window (w x h)
-root.geometry("820x580")
+root.geometry("850x480")
 
 # Create notebook
 notebook = ttk.Notebook(root)
@@ -153,9 +185,21 @@ entry_banka.grid(row=5, column=1, padx=5, pady=10)
 label_d = tk.Label(tab1, text="degrees")
 label_d.grid(row=5, column=2, padx=5, pady=10, sticky=tk.W)
 
+label_LDrat = tk.Label(tab1, text="Lift over drag ratio:")
+label_LDrat.grid(row=6, column=0, padx=5, pady=10, sticky=tk.W)
+LDrat_var = tk.StringVar(value="0")
+entry_LDrat = tk.Entry(tab1, textvariable=LDrat_var, width=12)
+entry_LDrat.grid(row=6, column=1, padx=5, pady=10)
+
+label_beta = tk.Label(tab1, text="Overwrite Ballistic Coefficient:")
+label_beta.grid(row=7, column=0, padx=5, pady=10, sticky=tk.W)
+beta_var = tk.StringVar(value="")
+entry_beta = tk.Entry(tab1, textvariable=beta_var, width=12)
+entry_beta.grid(row=7, column=1, padx=5, pady=10)
+
 # Vertical line, tab 1
 separator = ttk.Separator(tab1, orient="vertical")
-separator.grid(row=0, column=3, rowspan=6, sticky="ns", padx=5)
+separator.grid(row=0, column=3, rowspan=10, sticky="ns", padx=5)
 
 # Content right, tab 1
 heading_label2 = tk.Label(tab1, text="Enter Initial Flight Conditions", font=("Arial", 14, "bold"))
@@ -185,9 +229,13 @@ entry_h0.grid(row=3, column=5, padx=5, pady=10)
 label_m = tk.Label(tab1, text="meters")
 label_m.grid(row=3, column=6, padx=5, pady=10, sticky=tk.W)
 
+heating = tk.StringVar(value=False)
+cb = tk.Checkbutton(tab1, text="Compute Heating", variable=heating, onvalue=True, offvalue=False)
+cb.grid(row=4, column=5, padx=5, pady=10, sticky=tk.W)
+
 # Run button, tab 1
 button_run = tk.Button(tab1, text="Run Simulation", command=run_eoms)
-button_run.grid(row=6, column=2, columnspan=3, padx=10, pady=10, sticky=tk.NSEW)
+button_run.grid(row=6, column=4, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
 
 # Content left, tab 2
 heading_label3 = tk.Label(tab2, text="Enter Initial Orbit", font=("Arial", 14, "bold"))

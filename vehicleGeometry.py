@@ -1,17 +1,17 @@
 import numpy as np
 
 class vehicle:
-    def __init__(self, mass, coneDiameter, noseRadius, deltac, sigma):
+    def __init__(self, mass, coneDiameter, noseRadius, deltac, sigma, LDrat, bcoeff):
         self.mass = mass # kg
         self.coneDiamter = coneDiameter # m
         self.coneRadius = self.coneDiamter / 2 # m
-        self.nodeRadius = noseRadius # m
+        self.noseRadius = noseRadius # m
         self.deltac = np.radians(deltac) # degrees to radians
         self.sigma = np.radians(sigma) # degrees to radians
 
         self.CL = 0 # assume purely ballistic
-        self.LDrat = 0 # assume purely ballistic
         self.angleOfAttack = 0 # assume purely ballistic
+        self.LDrat = LDrat
 
         self.cpmax = 2.0 # assume Newtonian flow
 
@@ -19,25 +19,27 @@ class vehicle:
         self.CN = self.computeCN()
         self.CA = self.computeCA()
         self.CD = self.computeCD()
-        self.ballisticCoeff = self.computeBallisticCoeff()
+        self.ballisticCoeff = bcoeff
+        if self.ballisticCoeff == '':
+            self.ballisticCoeff = self.computeBallisticCoeff()
 
     def computeAref(self):
-        return np.pi * max(self.nodeRadius, self.coneRadius)**2
+        return np.pi * max(self.noseRadius, self.coneRadius)**2
     
     def computeCN(self):
         
         # assuming singlular truncated cone blunt body
-        term1 = 1 - ( self.nodeRadius / self.coneRadius )**2 * np.cos(self.deltac) * np.cos(self.deltac)
+        term1 = 1 - ( self.noseRadius / self.coneRadius )**2 * np.cos(self.deltac) * np.cos(self.deltac)
         term2 = np.cos(self.deltac) * np.cos(self.deltac) * np.sin(self.angleOfAttack) * np.cos(self.angleOfAttack)
         return self.cpmax * term1 * term2
 
     def computeCA(self):
         
         # assuming singlular truncated cone blunt body
-        term1 = 0.5 * ( 1 - (np.sin(self.deltac))**4 ) * ( self.nodeRadius / self.coneRadius )**2
+        term1 = 0.5 * ( 1 - (np.sin(self.deltac))**4 ) * ( self.noseRadius / self.coneRadius )**2
         term2 = np.sin(self.deltac) * np.sin(self.deltac) * np.cos(self.angleOfAttack) * np.cos(self.angleOfAttack) + \
                 0.5 * np.cos(self.deltac) * np.cos(self.deltac) * np.sin(self.angleOfAttack) * np.sin(self.angleOfAttack)
-        term3 = 1 - ( self.nodeRadius / self.coneRadius )**2 * np.cos(self.deltac) * np.cos(self.deltac)
+        term3 = 1 - ( self.noseRadius / self.coneRadius )**2 * np.cos(self.deltac) * np.cos(self.deltac)
         return self.cpmax * ( term1 + term2 * term3 )
     
     def computeCD(self):

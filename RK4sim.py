@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 
 from vehicleGeometry import vehicle
@@ -23,6 +24,7 @@ class RK4withLayeredAtmosphere:
         self.Rbar = 8314.32 # N-m/kmol-K
         self.R = 287 # J/kg-K
         self.MW0 = 28.9644 # kg/kmol
+        self.K = 1.74153 * 10**-4
 
     def dVdt(self, vel, gam, alt):
         val = - ( self.density(alt) * vel ** 2 ) / ( 2 * self.vehicleObject.ballisticCoeff ) - self.gravity(alt) * np.sin(gam)
@@ -121,7 +123,7 @@ class RK4withLayeredAtmosphere:
         # inverse square gravity law
         return self.g0 * ( self.Re / ( self.Re + alt ) )**2
     
-    def runSim(self, abortOnSkip = False, abortOnNmax = False, nmaxLim = 0):
+    def runSim(self, abortOnSkip = False, abortOnNmax = False, nmaxLim = 0, title = ''):
         v = self.v0
         gam = self.gamma0
         h = self.h0
@@ -173,12 +175,52 @@ class RK4withLayeredAtmosphere:
             return [True]
 
         else:
-            plt.plot(vHistory, hHistory)
-            plt.xlabel('Velocity (m/s)')
-            plt.ylabel('Altitude (m)')
-            plt.show()
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 1, 1)
+            ax.plot(vHistory, hHistory)
+            ax.set_xlabel('Velocity (m/s)')
+            ax.set_ylabel('Altitude (m)')
+            ax.set_title(title)
+            # plt.show()
 
-            return 'done'
+            return [vHistory, gamHistory, hHistory, fig]
+        
+    def SuttonGravesHeat(self, vHistory, hHistory):
+        length = len(vHistory)
+        qstag = [0] * length
+    
+        # equation (128)
+        for i in range(length):
+            qstag[i] = self.K * math.sqrt( self.density(hHistory[i]) / self.vehicleObject.noseRadius ) * vHistory[i]**3 / 10000; # W/cm^2
+        
+        tHistory = [0 + i * self.timeStep for i in range(length)]
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.plot(tHistory, qstag)
+        ax.set_xlabel('Time (s)')
+        ax.set_ylabel('Convective Stagnation-Point Heat Rate ' + r'$\text{(W/cm}^2 \text{)}$')
+        ax.set_title('Aerodynamic Heat Rate')
+        
+        return [qstag, fig]
+    
+    def integratedHeat(self, qstag):
+        length = len(qstag)
+        qtotal = [0] * length
+
+        for i in range(length-1):
+            area = (self.timeStep)/2 * (qstag[i+1] + qstag[i]) # J/cm^2
+            qtotal[i+1] = qtotal[i] + area
+    
+        tHistory = [0 + i * self.timeStep for i in range(length)]
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.plot(tHistory, qtotal)
+        ax.set_xlabel('Time (s)')
+        ax.set_ylabel('Stagnation-Point Integrated-Heat Rate ' + r'$\text{(J/cm}^2 \text{)}$')
+        ax.set_title('Total Heat Rate')
+        
+        return [qtotal, fig]
+
 
     
 if __name__ == "__main__":
