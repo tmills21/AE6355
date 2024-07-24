@@ -1,8 +1,6 @@
-from vehicleGeometry import vehicle
-
 class TPS:
-    def __init__(self, vehicleObject, vel, gam):
-        self.vehicleObject = vehicleObject
+    def __init__(self, beta, vel, gam):
+        self.beta = beta
         self.vel = vel
         self.gam = gam
         self.targetTemp = 523 # Kelvin
@@ -26,8 +24,8 @@ class TPS:
         lower = 2
         upper = 10
 
-        start[self.TPSequation(self.vel, self.gam, self.vehicleObject.ballisticCoeff, lower)] = lower
-        start[self.TPSequation(self.vel, self.gam, self.vehicleObject.ballisticCoeff, upper)] = upper
+        start[self.TPSequation(self.vel, self.gam, self.beta, lower)] = lower
+        start[self.TPSequation(self.vel, self.gam, self.beta, upper)] = upper
         
         lower = start[min(start.keys())]
         upper = start[max(start.keys())]
@@ -37,8 +35,7 @@ class TPS:
 
         while (diff > tol):
             next = ( upper + lower ) / 2
-            val = self.TPSequation(self.vel, self.gam, self.vehicleObject.ballisticCoeff, next)
-            print(val)
+            val = self.TPSequation(self.vel, self.gam, self.beta, next)
             diff = abs(self.targetTemp - val)
 
             if val > self.targetTemp:
@@ -49,6 +46,5 @@ class TPS:
         return next
 
 if __name__ == "__main__":
-    stardust = vehicle(46, 0.8128, 0.2202, 60, 0, 0, '')
-    test = TPS(stardust, 8.5, -5)
+    test = TPS(80, 8.5, -5)
     print(test.computeThickness())

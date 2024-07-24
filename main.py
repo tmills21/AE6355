@@ -7,6 +7,7 @@ from vehicleGeometry import vehicle
 from RK4PlanarSim import RK4Planar
 from RK4NonplanarSim import RK4Nonplanar
 from corridors import deorbit
+from TPSResponse import TPS
 
 def run_eoms():
     try:
@@ -271,6 +272,24 @@ def populate_entry_corridor():
     except ValueError as e:
         print("Enter valid number")
 
+def run_TPS():
+    selected_option = combo.get()
+    print("Selected:", selected_option)
+    if selected_option == 'Select an option':
+            messagebox.showwarning("No Selection", "Please select a material")
+    else:
+        beta = float(bt_var.get())
+        vel = float(velt_var.get())
+        gam = float(gamt_var.get())
+
+        print(f"Ballistic coefficient: {beta}, vatm: {vel}, fpa: {gam}")
+
+        mat = TPS(beta, vel, gam)
+        thick = mat.computeThickness()
+
+        entry_mt.delete(0, tk.END)
+        entry_mt.insert(0, str(thick))
+
 
 # Create the main window
 root = tk.Tk()
@@ -288,10 +307,12 @@ tab0 = ttk.Frame(notebook)
 tab1 = ttk.Frame(notebook)
 tab1_5 = ttk.Frame(notebook)
 tab2 = ttk.Frame(notebook)
+tab3 = ttk.Frame(notebook)
 notebook.add(tab0, text='Vehhicle Geometry')
 notebook.add(tab1, text='Planar EoMs')
 notebook.add(tab1_5, text='Nonplanar EoMs')
 notebook.add(tab2, text='Entry Corridor')
+notebook.add(tab3, text='TPS')
 
 # Content for Tab 0
 heading_label1 = tk.Label(tab0, text="Enter Vehicle Parameters", font=("Arial", 14, "bold"))
@@ -348,6 +369,8 @@ label_beta.grid(row=7, column=0, padx=10, pady=10, sticky=tk.W)
 beta_var = tk.StringVar(value="")
 entry_beta = tk.Entry(tab0, textvariable=beta_var, width=12)
 entry_beta.grid(row=7, column=1, padx=10, pady=10)
+label_b = tk.Label(tab0, text="kg/m^2")
+label_b.grid(row=7, column=2, padx=10, pady=10, sticky=tk.W)
 
 
 # Content left, tab 1
@@ -675,6 +698,72 @@ label_deg.grid(row=7, column=6, padx=5, pady=10, sticky=tk.W)
 # Run button
 button_run = tk.Button(tab2, text="Populate Entry Corridor", command=populate_entry_corridor)
 button_run.grid(row=9, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
+
+# tab 3
+heading_label4 = tk.Label(tab3, text="Enter Conditions", font=("Arial", 14, "bold"))
+heading_label4.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
+
+label_dropdown = tk.Label(tab3, text="Select material:")
+label_dropdown.grid(row=1, column=0, padx=5, pady=10, sticky=tk.W)
+
+combo_options = ["PICA"]
+combo = ttk.Combobox(tab3, values=combo_options, width=15)
+combo.set("Select an option")  # Default value
+combo.grid(row=1, column=1, padx=5, pady=10)
+
+# combo.bind("<<ComboboxSelected>>", handle_selection)
+
+label_velt = tk.Label(tab3, text="Atmospheric entry velocity:")
+label_velt.grid(row=2, column=0, padx=5, pady=10, sticky=tk.W)
+velt_var = tk.StringVar(value="")
+entry_velt = tk.Entry(tab3, textvariable=velt_var, width=17)
+entry_velt.grid(row=2, column=1, padx=5, pady=10)
+label_ms = tk.Label(tab3, text="m/s")
+label_ms.grid(row=2, column=2, padx=5, pady=10, sticky=tk.W)
+
+label_gamt = tk.Label(tab3, text="Entry flight path angle:")
+label_gamt.grid(row=4, column=0, padx=5, pady=10, sticky=tk.W)
+gamt_var = tk.StringVar(value="")
+entry_gamt = tk.Entry(tab3, textvariable=gamt_var, width=17)
+entry_gamt.grid(row=4, column=1, padx=5, pady=10)
+label_d = tk.Label(tab3, text="degrees")
+label_d.grid(row=4, column=2, padx=5, pady=10, sticky=tk.W)
+
+label_bt = tk.Label(tab3, text="Ballistic Coefficient:")
+label_bt.grid(row=6, column=0, padx=5, pady=10, sticky=tk.W)
+bt_var = tk.StringVar(value="")
+entry_bt = tk.Entry(tab3, textvariable=bt_var, width=17)
+entry_bt.grid(row=6, column=1, padx=5, pady=10)
+label_b = tk.Label(tab3, text="kg/m^2")
+label_b.grid(row=6, column=2, padx=5, pady=10, sticky=tk.W)
+
+# Vertical line, tab 1
+separator = ttk.Separator(tab3, orient="vertical")
+separator.grid(row=0, column=3, rowspan=7, sticky="ns", padx=5)
+
+label_rv = tk.Label(tab3, text="range: 7.9 to 13.0", font=("Arial", 10))
+label_rv.grid(row=3, column=1, padx=5, pady=0, sticky=tk.W)
+
+label_rg = tk.Label(tab3, text="range: -3 to -10", font=("Arial", 10))
+label_rg.grid(row=5, column=1, padx=5, pady=0, sticky=tk.W)
+
+label_rb = tk.Label(tab3, text="range: 20 to 100", font=("Arial", 10))
+label_rb.grid(row=7, column=1, padx=5, pady=0, sticky=tk.W)
+
+# Run button, tab 3
+button_run = tk.Button(tab3, text="Compute Material Thickness", command=run_TPS)
+button_run.grid(row=8, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
+
+heading_label2 = tk.Label(tab3, text="OUTPUT:", font=("Arial", 14, "bold"))
+heading_label2.grid(row=0, column=4, columnspan=2, padx=5, pady=10)
+
+label_mt = tk.Label(tab3, text="Material thickness:")
+label_mt.grid(row=1, column=4, padx=5, pady=10, sticky=tk.W)
+mt_var = tk.StringVar(value="")
+entry_mt = tk.Entry(tab3, textvariable=mt_var, width=17)
+entry_mt.grid(row=1, column=5, padx=5, pady=10)
+label_cm = tk.Label(tab3, text="cm")
+label_cm.grid(row=1, column=6, padx=5, pady=10, sticky=tk.W)
 
 # Run event loop
 root.mainloop()
