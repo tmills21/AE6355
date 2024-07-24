@@ -49,4 +49,4 @@ class vehicle:
         return self.mass / ( self.CD * self.Aref )
     
 if __name__ == "__main__":
-    stardust = vehicle(46, 0.8128, 0.2202, 60, 0)
+    stardust = vehicle(46, 0.8128, 0.2202, 60, 0, 0, '')

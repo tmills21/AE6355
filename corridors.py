@@ -1,5 +1,5 @@
 from vehicleGeometry import vehicle
-from RK4sim import RK4withLayeredAtmosphere
+from RK4PlanarSim import RK4Planar
 
 import numpy as np
 import math
@@ -7,7 +7,7 @@ import math
 class deorbit:
     def __init__(self, entryVehicle, RK4, ecc1, hp1, nmax, vatm):
         self.entryVehicle = entryVehicle # vehicle object
-        self.RK4 = RK4 # RK4withLayeredAtmosphere object
+        self.RK4 = RK4 # RK4Planar object
         self.ecc1 = ecc1
         self.hp1 = hp1 # meters
         self.nmax = - abs(nmax) # g's
@@ -84,7 +84,7 @@ class deorbit:
         prevGammae = lower_gammae
 
         while (gammaDif > 10**-4):
-            model = RK4withLayeredAtmosphere(self.entryVehicle, vel, prevGammae, self.RK4.hatm)
+            model = RK4Planar(self.entryVehicle, vel, prevGammae, self.RK4.hatm)
             capure = model.runSim(abortOnSkip = True)[0]
             if capure:
                 upper_gammae = prevGammae
@@ -109,14 +109,14 @@ class deorbit:
         startgamma = math.degrees(self.AllenEggersGammaFromNmax(vel))
         gammaincrement = -0.1
 
-        model = RK4withLayeredAtmosphere(self.entryVehicle, vel, startgamma, self.RK4.hatm)
+        model = RK4Planar(self.entryVehicle, vel, startgamma, self.RK4.hatm)
         ach = model.runSim(abortOnNmax = True, nmaxLim = self.nmax)[0]
 
         otherBoundFound = False
         if ach:
             while not otherBoundFound:
                 startgamma += gammaincrement
-                model = RK4withLayeredAtmosphere(self.entryVehicle, vel, startgamma, self.RK4.hatm)
+                model = RK4Planar(self.entryVehicle, vel, startgamma, self.RK4.hatm)
                 otherBoundFound = model.runSim(abortOnNmax = True, nmaxLim = self.nmax)[0]
 
             good_gammae = startgamma
@@ -125,7 +125,7 @@ class deorbit:
         else:
             while not otherBoundFound:
                 startgamma -= gammaincrement
-                model = RK4withLayeredAtmosphere(self.entryVehicle, vel, startgamma, self.RK4.hatm)
+                model = RK4Planar(self.entryVehicle, vel, startgamma, self.RK4.hatm)
                 otherBoundFound = model.runSim(abortOnNmax = True, nmaxLim = self.nmax)[0]
 
             good_gammae = startgamma
@@ -135,7 +135,7 @@ class deorbit:
         prevGammae = ( good_gammae + bad_gammae ) / 2
 
         while (gammaDif > 10**-4):
-            model = RK4withLayeredAtmosphere(self.entryVehicle, vel, prevGammae, self.RK4.hatm)
+            model = RK4Planar(self.entryVehicle, vel, prevGammae, self.RK4.hatm)
             ach = model.runSim(abortOnNmax = True, nmaxLim = self.nmax)[0]
             if ach:
                 good_gammae = prevGammae
@@ -236,7 +236,7 @@ class deorbit:
 
 if __name__ == "__main__":
     stardust = vehicle(46, 0.8128, 0.2202, 60, 0)
-    RK = RK4withLayeredAtmosphere(stardust, 11067.63087, -10, 120000)
+    RK = RK4Planar(stardust, 11067.63087, -10, 120000)
 
     orb = deorbit(stardust, RK, 0.1, 400000, 30, '')
     # print(orb.validCorridor(-7.713486509983248, -3.451846122741699, -7.670675341282269))

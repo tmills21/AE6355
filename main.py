@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from vehicleGeometry import vehicle
-from RK4sim import RK4withLayeredAtmosphere
+from RK4PlanarSim import RK4Planar
+from RK4NonplanarSim import RK4Nonplanar
 from corridors import deorbit
 
 def run_eoms():
@@ -32,7 +33,7 @@ def run_eoms():
         stardust = vehicle(mass, coneDia, noseRa, deltc, banka, LDrat, bcoeff)
 
         # Run simulation
-        toIntegrate = RK4withLayeredAtmosphere(stardust, v0, gam0, h0)
+        toIntegrate = RK4Planar(stardust, v0, gam0, h0)
         [vHistory, gamHistory, hHistory, decelHistory, fig] = toIntegrate.runSim(title = 'Gamma = ' + str(gam0) + " degrees and Velocity = " + str(v0) + " m/s")
 
         heat = bool(int(heating.get()))
@@ -74,6 +75,83 @@ def run_eoms():
     except ValueError as e:
         print("Enter valid number")
 
+def run_nonplanareoms():
+    try:
+        mass = float(mass_var.get())
+        coneDia = float(coned_var.get())
+        noseRa = float(noser_var.get())
+        deltc = float(conea_var.get())
+        banka = float(banka_var.get())
+        LDrat = float(LDrat_var.get())
+
+        bcoeff = beta_var.get()
+        if bcoeff != '':
+            bcoeff = float(bcoeff)
+
+        print(f"Mass: {mass}, Cone diameter: {coneDia}, Nose radius: {noseRa}, Cone angle: {deltc}, Bank angle: {banka}, LDrat: {LDrat}, Ballistic Coefficient: {bcoeff}")
+
+        v0 = float(vel0n_var.get())
+        gam0 = float(gam0n_var.get())
+        h0 = float(h0n_var.get())
+
+        phi = float(phi_var.get())
+        theta = float(theta_var.get())
+        psi = float(az_var.get())
+
+        print(f"Velocity0: {v0}, Gam0: {gam0}, Altitude0: {h0}")
+        print(f"Azimuth: {psi}, Latitude: {phi}, Longitude: {theta}")
+
+        T = float(tf_var.get())
+        eps = float(ta_var.get())
+
+        print(f"Thrust force: {T}, Thrust force angle: {eps}")
+
+        # Create vehicle object
+        stardust = vehicle(mass, coneDia, noseRa, deltc, banka, LDrat, bcoeff)
+
+        # Run simulation
+        toIntegrate = RK4Nonplanar(stardust, v0, gam0, h0, psi, theta, phi, T, eps)
+        [vHistory, gamHistory, hHistory, phiHistory, psiHistory, thetaHistory, decelHistory, fig] = toIntegrate.runSim(title = 'Gamma = ' + str(gam0) + " degrees and Velocity = " + str(v0) + " m/s")
+
+        heat = bool(int(heatingn.get()))
+        print(f"Heating: {heat}")
+
+        if heat:
+            [qstag, fig] = toIntegrate.SuttonGravesHeat(vHistory, hHistory)
+            [qtotal, fig] = toIntegrate.integratedHeat(qstag)
+
+            qstagMax = max(qstag)
+            qtotalMax = max(qtotal)
+
+            # populate entries
+            entry_phn.delete(0, tk.END)
+            entry_phn.insert(0, str(qstagMax))
+
+            entry_thn.delete(0, tk.END)
+            entry_thn.insert(0, str(qtotalMax))
+
+        # populate entries
+        maxdecel = abs(min(decelHistory))
+        index = np.argmin(decelHistory) + 1
+        maxdecelAlt = hHistory[index]
+        maxdecelVel = vHistory[index]
+
+        entry_hn.delete(0, tk.END)
+        entry_hn.insert(0, str(maxdecelAlt))
+
+        entry_vn.delete(0, tk.END)
+        entry_vn.insert(0, str(maxdecelVel))
+
+        entry_mgn.delete(0, tk.END)
+        entry_mgn.insert(0, str(maxdecel))
+
+        plt.show()
+
+        print("Simulation Result: done")
+
+    except ValueError as e:
+        print("Enter valid number")
+
 def populate_entry_corridor():
     try:
         mass = float(mass_var.get())
@@ -99,7 +177,7 @@ def populate_entry_corridor():
         stardust = vehicle(mass, coneDia, noseRa, deltc, banka, LDrat, bcoeff)
 
         # Run simulation
-        toIntegrate = RK4withLayeredAtmosphere(stardust, v0, gam0, h0)
+        toIntegrate = RK4Planar(stardust, v0, gam0, h0)
 
         ecc = float(e_var.get())
         hp = float(pa_var.get())
@@ -134,13 +212,13 @@ def populate_entry_corridor():
         entry_rgo.insert(0, str(overshootGamma))
 
         figures = []
-        toIntegrate = RK4withLayeredAtmosphere(stardust, vatm, undershootGamma, h0)
+        toIntegrate = RK4Planar(stardust, vatm, undershootGamma, h0)
         figures.append(toIntegrate.runSim(title = 'Undershoot: Gamma = ' + str(undershootGamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
 
-        toIntegrate = RK4withLayeredAtmosphere(stardust, vatm, overshootGamma, h0)
+        toIntegrate = RK4Planar(stardust, vatm, overshootGamma, h0)
         figures.append(toIntegrate.runSim(title = 'Undershoot: Gamma = ' + str(overshootGamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
 
-        toIntegrate = RK4withLayeredAtmosphere(stardust, vatm, minDVgamma, h0)
+        toIntegrate = RK4Planar(stardust, vatm, minDVgamma, h0)
         figures.append(toIntegrate.runSim(title = 'Min dV Entry: Gamma = ' + str(minDVgamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
 
         plt.show()
@@ -154,7 +232,7 @@ root = tk.Tk()
 root.title("AE 6355: Planetary Entry, Descent, and Landing")
 
 # Size window (w x h)
-root.geometry("850x480")
+root.geometry("880x600")
 
 # Create notebook
 notebook = ttk.Notebook(root)
@@ -163,9 +241,11 @@ notebook.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
 # Create tabs
 tab0 = ttk.Frame(notebook)
 tab1 = ttk.Frame(notebook)
+tab1_5 = ttk.Frame(notebook)
 tab2 = ttk.Frame(notebook)
 notebook.add(tab0, text='Vehhicle Geometry')
 notebook.add(tab1, text='Planar EoMs')
+notebook.add(tab1_5, text='Nonplanar EoMs')
 notebook.add(tab2, text='Entry Corridor')
 
 # Content for Tab 0
@@ -311,6 +391,133 @@ entry_th = tk.Entry(tab1, textvariable=th_var, width=12)
 entry_th.grid(row=6, column=5, padx=5, pady=10)
 label_th = tk.Label(tab1, text="J/cm^2")
 label_th.grid(row=6, column=6, padx=5, pady=10, sticky=tk.W)
+
+# Content left, tab 1.5
+heading_label2 = tk.Label(tab1_5, text="Enter Initial Flight Conditions", font=("Arial", 14, "bold"))
+heading_label2.grid(row=0, column=0, columnspan=2, padx=5, pady=10)
+
+label_vel0n = tk.Label(tab1_5, text="Initial velocity:")
+label_vel0n.grid(row=1, column=0, padx=5, pady=10, sticky=tk.W)
+vel0n_var = tk.StringVar(value="11067.63087")
+entry_vel0n = tk.Entry(tab1_5, textvariable=vel0n_var, width=12)
+entry_vel0n.grid(row=1, column=1, padx=5, pady=10)
+label_ms = tk.Label(tab1_5, text="m/s")
+label_ms.grid(row=1, column=2, padx=5, pady=10, sticky=tk.W)
+
+label_gam0n = tk.Label(tab1_5, text="Initial flight path angle:")
+label_gam0n.grid(row=2, column=0, padx=5, pady=10, sticky=tk.W)
+gam0n_var = tk.StringVar(value="-10")
+entry_gam0n = tk.Entry(tab1_5, textvariable=gam0n_var, width=12)
+entry_gam0n.grid(row=2, column=1, padx=5, pady=10)
+label_d = tk.Label(tab1_5, text="degrees")
+label_d.grid(row=2, column=2, padx=5, pady=10, sticky=tk.W)
+
+label_h0n = tk.Label(tab1_5, text="Initial altitude:")
+label_h0n.grid(row=3, column=0, padx=5, pady=10, sticky=tk.W)
+h0n_var = tk.StringVar(value="120000")
+entry_h0n = tk.Entry(tab1_5, textvariable=h0n_var, width=12)
+entry_h0n.grid(row=3, column=1, padx=5, pady=10)
+label_m = tk.Label(tab1_5, text="meters")
+label_m.grid(row=3, column=2, padx=5, pady=10, sticky=tk.W)
+
+label_phi = tk.Label(tab1_5, text="Latitude:")
+label_phi.grid(row=4, column=0, padx=5, pady=10, sticky=tk.W)
+phi_var = tk.StringVar(value="0")
+entry_phi = tk.Entry(tab1_5, textvariable=phi_var, width=12)
+entry_phi.grid(row=4, column=1, padx=5, pady=10)
+label_deg = tk.Label(tab1_5, text="degrees")
+label_deg.grid(row=4, column=2, padx=5, pady=10, sticky=tk.W)
+
+label_theta = tk.Label(tab1_5, text="Longitude:")
+label_theta.grid(row=5, column=0, padx=5, pady=10, sticky=tk.W)
+theta_var = tk.StringVar(value="0")
+entry_theta = tk.Entry(tab1_5, textvariable=theta_var, width=12)
+entry_theta.grid(row=5, column=1, padx=5, pady=10)
+label_deg = tk.Label(tab1_5, text="degrees")
+label_deg.grid(row=5, column=2, padx=5, pady=10, sticky=tk.W)
+
+label_az = tk.Label(tab1_5, text="Azimuth:")
+label_az.grid(row=6, column=0, padx=5, pady=10, sticky=tk.W)
+az_var = tk.StringVar(value="0")
+entry_az = tk.Entry(tab1_5, textvariable=az_var, width=12)
+entry_az.grid(row=6, column=1, padx=5, pady=10)
+label_deg = tk.Label(tab1_5, text="degrees")
+label_deg.grid(row=6, column=2, padx=5, pady=10, sticky=tk.W)
+
+label_tf = tk.Label(tab1_5, text="Thrust force:")
+label_tf.grid(row=7, column=0, padx=5, pady=10, sticky=tk.W)
+tf_var = tk.StringVar(value="0")
+entry_tf = tk.Entry(tab1_5, textvariable=tf_var, width=12)
+entry_tf.grid(row=7, column=1, padx=5, pady=10)
+label_new = tk.Label(tab1_5, text="Newtons")
+label_new.grid(row=7, column=2, padx=5, pady=10, sticky=tk.W)
+
+label_ta = tk.Label(tab1_5, text="Thrust angle from flight path:")
+label_ta.grid(row=8, column=0, padx=5, pady=10, sticky=tk.W)
+ta_var = tk.StringVar(value="0")
+entry_ta = tk.Entry(tab1_5, textvariable=ta_var, width=12)
+entry_ta.grid(row=8, column=1, padx=5, pady=10)
+label_deg = tk.Label(tab1_5, text="degrees")
+label_deg.grid(row=8, column=2, padx=5, pady=10, sticky=tk.W)
+
+heatingn = tk.StringVar(value=False)
+cb = tk.Checkbutton(tab1_5, text="Compute Heating", variable=heatingn, onvalue=True, offvalue=False)
+cb.grid(row=9, column=1, padx=5, pady=10, sticky=tk.W)
+
+# Run button, tab 1
+button_run = tk.Button(tab1_5, text="Run Simulation", command=run_nonplanareoms)
+button_run.grid(row=10, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
+
+# Vertical line, tab 1
+separator = ttk.Separator(tab1_5, orient="vertical")
+separator.grid(row=0, column=3, rowspan=12, sticky="ns", padx=5)
+
+# Content right, tab 1
+heading_label2 = tk.Label(tab1_5, text="OUTPUT: Peak deceleration", font=("Arial", 14, "bold"))
+heading_label2.grid(row=0, column=4, columnspan=2, padx=5, pady=10)
+
+label_hn = tk.Label(tab1_5, text="Altitude:")
+label_hn.grid(row=1, column=4, padx=5, pady=10, sticky=tk.W)
+hn_var = tk.StringVar(value="")
+entry_hn = tk.Entry(tab1_5, textvariable=hn_var, width=12)
+entry_hn.grid(row=1, column=5, padx=5, pady=10)
+label_m = tk.Label(tab1_5, text="meters")
+label_m.grid(row=1, column=6, padx=5, pady=10, sticky=tk.W)
+
+label_vn = tk.Label(tab1_5, text="Velocity:")
+label_vn.grid(row=2, column=4, padx=5, pady=10, sticky=tk.W)
+vn_var = tk.StringVar(value="")
+entry_vn = tk.Entry(tab1_5, textvariable=vn_var, width=12)
+entry_vn.grid(row=2, column=5, padx=5, pady=10)
+label_ms = tk.Label(tab1_5, text="m/s")
+label_ms.grid(row=2, column=6, padx=5, pady=10, sticky=tk.W)
+
+label_mgn = tk.Label(tab1_5, text="Magnitude:")
+label_mgn.grid(row=3, column=4, padx=5, pady=10, sticky=tk.W)
+mgn_var = tk.StringVar(value="")
+entry_mgn = tk.Entry(tab1_5, textvariable=mgn_var, width=12)
+entry_mgn.grid(row=3, column=5, padx=5, pady=10)
+label_gs = tk.Label(tab1_5, text="g's")
+label_gs.grid(row=3, column=6, padx=5, pady=10, sticky=tk.W)
+
+heading_label2 = tk.Label(tab1_5, text="OUTPUT: Heating", font=("Arial", 14, "bold"))
+heading_label2.grid(row=4, column=4, columnspan=2, padx=5, pady=10)
+
+label_phn = tk.Label(tab1_5, text="Peak aerodynamic heat rate:")
+label_phn.grid(row=5, column=4, padx=5, pady=10, sticky=tk.W)
+phn_var = tk.StringVar(value="")
+entry_phn = tk.Entry(tab1_5, textvariable=phn_var, width=12)
+entry_phn.grid(row=5, column=5, padx=5, pady=10)
+label_phn = tk.Label(tab1_5, text="W/cm^2")
+label_phn.grid(row=5, column=6, padx=5, pady=10, sticky=tk.W)
+
+label_thn = tk.Label(tab1_5, text="Total Heat Load:")
+label_thn.grid(row=6, column=4, padx=5, pady=10, sticky=tk.W)
+thn_var = tk.StringVar(value="")
+entry_thn = tk.Entry(tab1_5, textvariable=thn_var, width=12)
+entry_thn.grid(row=6, column=5, padx=5, pady=10)
+label_thn = tk.Label(tab1_5, text="J/cm^2")
+label_thn.grid(row=6, column=6, padx=5, pady=10, sticky=tk.W)
 
 
 # Content left, tab 2

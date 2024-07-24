@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from vehicleGeometry import vehicle
 
-class RK4withLayeredAtmosphere:
+class RK4Planar:
     def __init__(self, vehicleObject, v0, gamma0, h0):
         self.vehicleObject = vehicleObject
 
@@ -31,9 +31,9 @@ class RK4withLayeredAtmosphere:
         return val
 
     def dGamdt(self, vel, gam, alt):
-        term1 = (vel * np.cos(gam)) / (self.Re + alt) 
-        term2 = (self.density(alt) * vel) / (2 * self.vehicleObject.ballisticCoeff) * self.vehicleObject.LDrat * np.cos(self.vehicleObject.sigma) 
-        term3 = - (self.gravity(alt) * np.cos(gam)) / vel
+        term1 = ( vel * np.cos(gam) ) / ( self.Re + alt ) 
+        term2 = ( self.density(alt) * vel ) / ( 2 * self.vehicleObject.ballisticCoeff ) * self.vehicleObject.LDrat * np.cos(self.vehicleObject.sigma) 
+        term3 = - ( self.gravity(alt) * np.cos(gam) ) / vel
         return term1 + term2 + term3
 
     def dhdt(self, vel, gam):
@@ -227,10 +227,10 @@ class RK4withLayeredAtmosphere:
     
 if __name__ == "__main__":
     stardust = vehicle(46, 0.8128, 0.2202, 60, 0, 0, '')
-    test = RK4withLayeredAtmosphere(stardust, 8977.441267279422, -8.270241244214445, 120000)
+    test = RK4Planar(stardust, 8977.441267279422, -8.270241244214445, 120000)
     simulation_result = test.runSim(abortOnNmax = True, nmaxLim = -30)
 
-    # altitude = np.arange(0, 150000, 1)
+    # altitude = np.arange(3000, 8000, 1)
     # density = np.zeros_like(altitude)
 
     # for i, alt in enumerate(altitude):
