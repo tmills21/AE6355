@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -39,20 +39,6 @@ def run_eoms():
         heat = bool(int(heating.get()))
         print(f"Heating: {heat}")
 
-        if heat:
-            [qstag, fig] = toIntegrate.SuttonGravesHeat(vHistory, hHistory)
-            [qtotal, fig] = toIntegrate.integratedHeat(qstag)
-
-            qstagMax = max(qstag)
-            qtotalMax = max(qtotal)
-
-            # populate entries
-            entry_ph.delete(0, tk.END)
-            entry_ph.insert(0, str(qstagMax))
-
-            entry_th.delete(0, tk.END)
-            entry_th.insert(0, str(qtotalMax))
-
         # populate entries
         maxdecel = abs(min(decelHistory))
         index = np.argmin(decelHistory) + 1
@@ -67,6 +53,20 @@ def run_eoms():
 
         entry_mg.delete(0, tk.END)
         entry_mg.insert(0, str(maxdecel))
+
+        entry_ph.delete(0, tk.END)
+        entry_th.delete(0, tk.END)
+
+        if heat:
+            [qstag, fig] = toIntegrate.SuttonGravesHeat(vHistory, hHistory)
+            [qtotal, fig] = toIntegrate.integratedHeat(qstag)
+
+            qstagMax = max(qstag)
+            qtotalMax = max(qtotal)
+
+            # populate entries
+            entry_ph.insert(0, str(qstagMax))
+            entry_th.insert(0, str(qtotalMax))
 
         plt.show()
 
@@ -116,20 +116,6 @@ def run_nonplanareoms():
         heat = bool(int(heatingn.get()))
         print(f"Heating: {heat}")
 
-        if heat:
-            [qstag, fig] = toIntegrate.SuttonGravesHeat(vHistory, hHistory)
-            [qtotal, fig] = toIntegrate.integratedHeat(qstag)
-
-            qstagMax = max(qstag)
-            qtotalMax = max(qtotal)
-
-            # populate entries
-            entry_phn.delete(0, tk.END)
-            entry_phn.insert(0, str(qstagMax))
-
-            entry_thn.delete(0, tk.END)
-            entry_thn.insert(0, str(qtotalMax))
-
         # populate entries
         maxdecel = abs(min(decelHistory))
         index = np.argmin(decelHistory) + 1
@@ -144,6 +130,20 @@ def run_nonplanareoms():
 
         entry_mgn.delete(0, tk.END)
         entry_mgn.insert(0, str(maxdecel))
+
+        entry_phn.delete(0, tk.END)
+        entry_thn.delete(0, tk.END)
+
+        if heat:
+            [qstag, fig] = toIntegrate.SuttonGravesHeat(vHistory, hHistory)
+            [qtotal, fig] = toIntegrate.integratedHeat(qstag)
+
+            qstagMax = max(qstag)
+            qtotalMax = max(qtotal)
+
+            # populate entries
+            entry_phn.insert(0, str(qstagMax))
+            entry_thn.insert(0, str(qtotalMax))
 
         plt.show()
 
@@ -167,61 +167,106 @@ def populate_entry_corridor():
 
         print(f"Mass: {mass}, Cone diameter: {coneDia}, Nose radius: {noseRa}, Cone angle: {deltc}, Bank angle: {banka}, LDrat: {LDrat}, Ballistic Coefficient: {bcoeff}")
 
-        v0 = float(vel0_var.get())
-        gam0 = float(gam0_var.get())
-        h0 = float(h0_var.get())
-
-        # print(f"Velocity0: {v0}, Gam0: {gam0}, Altitude0: {h0}")
-
         # Create vehicle object
         stardust = vehicle(mass, coneDia, noseRa, deltc, banka, LDrat, bcoeff)
 
-        # Run simulation
-        toIntegrate = RK4Planar(stardust, v0, gam0, h0)
+        selected_option = selected.get()
+        if not selected_option:
+            messagebox.showwarning("No Selection", "Please select an equation of motion")
+            
+        else:
+            if selected_option == 'Planar':
 
-        ecc = float(e_var.get())
-        hp = float(pa_var.get())
-        nmaxlim = float(nmax_var.get())
-        vedes = ve_var.get()
-        if vedes != '':
-            vedes = float(vedes)
+                ### planar ###
+                v0 = float(vel0_var.get())
+                gam0 = float(gam0_var.get())
+                h0 = float(h0_var.get())
 
-        print(f"Eccentricty: {ecc}, Periapsis altitude: {hp}, Max Deceleration limit: {nmaxlim}, Desired entry velocity: {vedes}")
+                print(f"Velocity0: {v0}, Gam0: {gam0}, Altitude0: {h0}")
 
-        orb = deorbit(stardust, toIntegrate, ecc, hp, nmaxlim, vedes)
-        [vatm, minDVgamma, rD, deltav, undershootGamma, overshootGamma] = orb.computeCorridor()
+                # Run simulation
+                toIntegrate = RK4Planar(stardust, v0, gam0, h0)
+                planar = True
+                options = []
 
-        print('Corridor found!')
+            else:
 
-        entry_rvm.delete(0, tk.END)
-        entry_rvm.insert(0, str(vatm))
+                ### nonplanar ###
+                v0 = float(vel0n_var.get())
+                gam0 = float(gam0n_var.get())
+                h0 = float(h0n_var.get())
 
-        entry_rgm.delete(0, tk.END)
-        entry_rgm.insert(0, str(minDVgamma))
+                phi = float(phi_var.get())
+                theta = float(theta_var.get())
+                psi = float(az_var.get())
 
-        entry_rdm.delete(0, tk.END)
-        entry_rdm.insert(0, str(rD))
+                print(f"Velocity0: {v0}, Gam0: {gam0}, Altitude0: {h0}")
+                print(f"Azimuth: {psi}, Latitude: {phi}, Longitude: {theta}")
 
-        entry_dvm.delete(0, tk.END)
-        entry_dvm.insert(0, str(deltav))
+                T = float(tf_var.get())
+                eps = float(ta_var.get())
 
-        entry_rgu.delete(0, tk.END)
-        entry_rgu.insert(0, str(undershootGamma))
+                print(f"Thrust force: {T}, Thrust force angle: {eps}")
+
+                # Run simulation
+                toIntegrate = RK4Nonplanar(stardust, v0, gam0, h0, psi, theta, phi, T, eps)
+                planar = False
+                options = [psi, theta, phi, T, eps]
         
-        entry_rgo.delete(0, tk.END)
-        entry_rgo.insert(0, str(overshootGamma))
+            ecc = float(e_var.get())
+            hp = float(pa_var.get())
+            nmaxlim = float(nmax_var.get())
+            vedes = ve_var.get()
+            if vedes != '':
+                vedes = float(vedes)
 
-        figures = []
-        toIntegrate = RK4Planar(stardust, vatm, undershootGamma, h0)
-        figures.append(toIntegrate.runSim(title = 'Undershoot: Gamma = ' + str(undershootGamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
+            print(f"Eccentricty: {ecc}, Periapsis altitude: {hp}, Max Deceleration limit: {nmaxlim}, Desired entry velocity: {vedes}")
 
-        toIntegrate = RK4Planar(stardust, vatm, overshootGamma, h0)
-        figures.append(toIntegrate.runSim(title = 'Undershoot: Gamma = ' + str(overshootGamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
+            orb = deorbit(stardust, toIntegrate, ecc, hp, nmaxlim, vedes, planar, options)
+            [vatm, minDVgamma, rD, deltav, undershootGamma, overshootGamma] = orb.computeCorridor()
 
-        toIntegrate = RK4Planar(stardust, vatm, minDVgamma, h0)
-        figures.append(toIntegrate.runSim(title = 'Min dV Entry: Gamma = ' + str(minDVgamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
+            print('Corridor found!')
 
-        plt.show()
+            entry_rvm.delete(0, tk.END)
+            entry_rvm.insert(0, str(vatm))
+
+            entry_rgm.delete(0, tk.END)
+            entry_rgm.insert(0, str(minDVgamma))
+
+            entry_rdm.delete(0, tk.END)
+            entry_rdm.insert(0, str(rD))
+
+            entry_dvm.delete(0, tk.END)
+            entry_dvm.insert(0, str(deltav))
+
+            entry_rgu.delete(0, tk.END)
+            entry_rgu.insert(0, str(undershootGamma))
+            
+            entry_rgo.delete(0, tk.END)
+            entry_rgo.insert(0, str(overshootGamma))
+
+            figures = []
+            if selected_option == 'Planar':
+                toIntegrate = RK4Planar(stardust, vatm, undershootGamma, h0)
+                figures.append(toIntegrate.runSim(title = 'Undershoot: Gamma = ' + str(undershootGamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
+
+                toIntegrate = RK4Planar(stardust, vatm, overshootGamma, h0)
+                figures.append(toIntegrate.runSim(title = 'Overshoot: Gamma = ' + str(overshootGamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
+
+                toIntegrate = RK4Planar(stardust, vatm, minDVgamma, h0)
+                figures.append(toIntegrate.runSim(title = 'Min dV Entry: Gamma = ' + str(minDVgamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
+
+            else:
+                toIntegrate = RK4Nonplanar(stardust, vatm, undershootGamma, h0, psi, theta, phi, T, eps)
+                figures.append(toIntegrate.runSim(title = 'Undershoot: Gamma = ' + str(undershootGamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
+
+                toIntegrate = RK4Nonplanar(stardust, vatm, overshootGamma, h0, psi, theta, phi, T, eps)
+                figures.append(toIntegrate.runSim(title = 'Overshoot: Gamma = ' + str(overshootGamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
+
+                toIntegrate = RK4Nonplanar(stardust, vatm, minDVgamma, h0, psi, theta, phi, T, eps)
+                figures.append(toIntegrate.runSim(title = 'Min dV Entry: Gamma = ' + str(minDVgamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
+
+            plt.show()
 
     except ValueError as e:
         print("Enter valid number")
@@ -559,6 +604,15 @@ label_mps.grid(row=5, column=2, padx=5, pady=10, sticky=tk.W)
 label_disc = tk.Label(tab2, text="chosen internally if blank", font=("Arial", 10))
 label_disc.grid(row=6, column=1, padx=5, pady=0, sticky=tk.W)
 
+heading_label3 = tk.Label(tab2, text="Select Equations of Motion", font=("Arial", 14, "bold"))
+heading_label3.grid(row=7, column=0, columnspan=2, padx=10, pady=10)
+
+selected = tk.StringVar()
+
+options = ["Planar", "Nonplanar"]
+for idx, option in enumerate(options):
+    tk.Radiobutton(tab2, text=option, variable=selected, value=option).grid(row=8, column=idx, columnspan=1, padx=10, pady=5, sticky=tk.W)
+
 # Vertical line, tab 2
 separator = ttk.Separator(tab2, orient="vertical")
 separator.grid(row=0, column=3, rowspan=10, sticky="ns", padx=5)
@@ -620,7 +674,7 @@ label_deg.grid(row=7, column=6, padx=5, pady=10, sticky=tk.W)
 
 # Run button
 button_run = tk.Button(tab2, text="Populate Entry Corridor", command=populate_entry_corridor)
-button_run.grid(row=7, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
+button_run.grid(row=9, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
 
 # Run event loop
 root.mainloop()

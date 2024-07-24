@@ -1,18 +1,21 @@
 from vehicleGeometry import vehicle
 from RK4PlanarSim import RK4Planar
+from RK4NonplanarSim import RK4Nonplanar
 
 import numpy as np
 import math
 
 class deorbit:
-    def __init__(self, entryVehicle, RK4, ecc1, hp1, nmax, vatm):
+    def __init__(self, entryVehicle, RK4, ecc1, hp1, nmax, vatm, planar, options=[]):
         self.entryVehicle = entryVehicle # vehicle object
-        self.RK4 = RK4 # RK4Planar object
+        self.RK4 = RK4 # RK4 object
         self.ecc1 = ecc1
         self.hp1 = hp1 # meters
         self.nmax = - abs(nmax) # g's
         self.vatm = vatm # m/s
         self.ue = self.takeDimensionOut(self.vatm)
+        self.planar = planar
+        self.options = options
 
         self.a1 = self.computea(self.ecc1, self.hp1) # meters
         self.p1 = self.computep(self.a1, self.ecc1) # meters
@@ -84,7 +87,11 @@ class deorbit:
         prevGammae = lower_gammae
 
         while (gammaDif > 10**-4):
-            model = RK4Planar(self.entryVehicle, vel, prevGammae, self.RK4.hatm)
+            if self.planar:
+                model = RK4Planar(self.entryVehicle, vel, prevGammae, self.RK4.hatm)
+            else: 
+                model = RK4Nonplanar(self.entryVehicle, vel, prevGammae, self.RK4.hatm, self.options[0], self.options[1], self.options[2], self.options[3], self.options[4])
+            
             capure = model.runSim(abortOnSkip = True)[0]
             if capure:
                 upper_gammae = prevGammae
@@ -109,14 +116,21 @@ class deorbit:
         startgamma = math.degrees(self.AllenEggersGammaFromNmax(vel))
         gammaincrement = -0.1
 
-        model = RK4Planar(self.entryVehicle, vel, startgamma, self.RK4.hatm)
+        if self.planar:
+            model = RK4Planar(self.entryVehicle, vel, startgamma, self.RK4.hatm)
+        else:
+            model = RK4Nonplanar(self.entryVehicle, vel, startgamma, self.RK4.hatm, self.options[0], self.options[1], self.options[2], self.options[3], self.options[4])
+
         ach = model.runSim(abortOnNmax = True, nmaxLim = self.nmax)[0]
 
         otherBoundFound = False
         if ach:
             while not otherBoundFound:
                 startgamma += gammaincrement
-                model = RK4Planar(self.entryVehicle, vel, startgamma, self.RK4.hatm)
+                if self.planar:
+                    model = RK4Planar(self.entryVehicle, vel, startgamma, self.RK4.hatm)
+                else:
+                    model = RK4Nonplanar(self.entryVehicle, vel, startgamma, self.RK4.hatm, self.options[0], self.options[1], self.options[2], self.options[3], self.options[4])
                 otherBoundFound = model.runSim(abortOnNmax = True, nmaxLim = self.nmax)[0]
 
             good_gammae = startgamma
@@ -125,7 +139,10 @@ class deorbit:
         else:
             while not otherBoundFound:
                 startgamma -= gammaincrement
-                model = RK4Planar(self.entryVehicle, vel, startgamma, self.RK4.hatm)
+                if self.planar:
+                    model = RK4Planar(self.entryVehicle, vel, startgamma, self.RK4.hatm)
+                else:
+                    model = RK4Nonplanar(self.entryVehicle, vel, startgamma, self.RK4.hatm, self.options[0], self.options[1], self.options[2], self.options[3], self.options[4])
                 otherBoundFound = model.runSim(abortOnNmax = True, nmaxLim = self.nmax)[0]
 
             good_gammae = startgamma
@@ -135,7 +152,10 @@ class deorbit:
         prevGammae = ( good_gammae + bad_gammae ) / 2
 
         while (gammaDif > 10**-4):
-            model = RK4Planar(self.entryVehicle, vel, prevGammae, self.RK4.hatm)
+            if self.planar:
+                model = RK4Planar(self.entryVehicle, vel, prevGammae, self.RK4.hatm)
+            else:
+                model = RK4Nonplanar(self.entryVehicle, vel, prevGammae, self.RK4.hatm, self.options[0], self.options[1], self.options[2], self.options[3], self.options[4])
             ach = model.runSim(abortOnNmax = True, nmaxLim = self.nmax)[0]
             if ach:
                 good_gammae = prevGammae
