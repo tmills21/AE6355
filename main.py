@@ -296,7 +296,7 @@ root = tk.Tk()
 root.title("AE 6355: Planetary Entry, Descent, and Landing")
 
 # Size window (w x h)
-root.geometry("880x600")
+root.geometry("885x600")
 
 # Create notebook
 notebook = ttk.Notebook(root)
@@ -308,7 +308,7 @@ tab1 = ttk.Frame(notebook)
 tab1_5 = ttk.Frame(notebook)
 tab2 = ttk.Frame(notebook)
 tab3 = ttk.Frame(notebook)
-notebook.add(tab0, text='Vehhicle Geometry')
+notebook.add(tab0, text='Vehicle Geometry')
 notebook.add(tab1, text='Planar EoMs')
 notebook.add(tab1_5, text='Nonplanar EoMs')
 notebook.add(tab2, text='Entry Corridor')
@@ -411,14 +411,14 @@ button_run.grid(row=6, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
 
 # Vertical line, tab 1
 separator = ttk.Separator(tab1, orient="vertical")
-separator.grid(row=0, column=3, rowspan=10, sticky="ns", padx=5)
+separator.grid(row=0, column=3, rowspan=10, sticky="ns", padx=20)
 
 # Content right, tab 1
 heading_label2 = tk.Label(tab1, text="OUTPUT: Peak deceleration", font=("Arial", 14, "bold"))
 heading_label2.grid(row=0, column=4, columnspan=2, padx=5, pady=10)
 
 label_h = tk.Label(tab1, text="Altitude:")
-label_h.grid(row=1, column=4, padx=5, pady=10, sticky=tk.W)
+label_h.grid(row=1, column=4, padx=10, pady=10, sticky=tk.W)
 h_var = tk.StringVar(value="")
 entry_h = tk.Entry(tab1, textvariable=h_var, width=12)
 entry_h.grid(row=1, column=5, padx=5, pady=10)
@@ -426,7 +426,7 @@ label_m = tk.Label(tab1, text="meters")
 label_m.grid(row=1, column=6, padx=5, pady=10, sticky=tk.W)
 
 label_v = tk.Label(tab1, text="Velocity:")
-label_v.grid(row=2, column=4, padx=5, pady=10, sticky=tk.W)
+label_v.grid(row=2, column=4, padx=10, pady=10, sticky=tk.W)
 v_var = tk.StringVar(value="")
 entry_v = tk.Entry(tab1, textvariable=v_var, width=12)
 entry_v.grid(row=2, column=5, padx=5, pady=10)
@@ -434,7 +434,7 @@ label_ms = tk.Label(tab1, text="m/s")
 label_ms.grid(row=2, column=6, padx=5, pady=10, sticky=tk.W)
 
 label_mg = tk.Label(tab1, text="Magnitude:")
-label_mg.grid(row=3, column=4, padx=5, pady=10, sticky=tk.W)
+label_mg.grid(row=3, column=4, padx=10, pady=10, sticky=tk.W)
 mg_var = tk.StringVar(value="")
 entry_mg = tk.Entry(tab1, textvariable=mg_var, width=12)
 entry_mg.grid(row=3, column=5, padx=5, pady=10)
@@ -445,7 +445,7 @@ heading_label2 = tk.Label(tab1, text="OUTPUT: Heating", font=("Arial", 14, "bold
 heading_label2.grid(row=4, column=4, columnspan=2, padx=5, pady=10)
 
 label_ph = tk.Label(tab1, text="Peak aerodynamic heat rate:")
-label_ph.grid(row=5, column=4, padx=5, pady=10, sticky=tk.W)
+label_ph.grid(row=5, column=4, padx=10, pady=10, sticky=tk.W)
 ph_var = tk.StringVar(value="")
 entry_ph = tk.Entry(tab1, textvariable=ph_var, width=12)
 entry_ph.grid(row=5, column=5, padx=5, pady=10)
@@ -453,7 +453,7 @@ label_ph = tk.Label(tab1, text="W/cm^2")
 label_ph.grid(row=5, column=6, padx=5, pady=10, sticky=tk.W)
 
 label_th = tk.Label(tab1, text="Total Heat Load:")
-label_th.grid(row=6, column=4, padx=5, pady=10, sticky=tk.W)
+label_th.grid(row=6, column=4, padx=10, pady=10, sticky=tk.W)
 th_var = tk.StringVar(value="")
 entry_th = tk.Entry(tab1, textvariable=th_var, width=12)
 entry_th.grid(row=6, column=5, padx=5, pady=10)
@@ -536,7 +536,7 @@ cb.grid(row=9, column=1, padx=5, pady=10, sticky=tk.W)
 button_run = tk.Button(tab1_5, text="Run Simulation", command=run_nonplanareoms)
 button_run.grid(row=10, column=0, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
 
-# Vertical line, tab 1
+# Vertical line, tab 1.5
 separator = ttk.Separator(tab1_5, orient="vertical")
 separator.grid(row=0, column=3, rowspan=12, sticky="ns", padx=5)
 
@@ -545,7 +545,7 @@ heading_label2 = tk.Label(tab1_5, text="OUTPUT: Peak deceleration", font=("Arial
 heading_label2.grid(row=0, column=4, columnspan=2, padx=5, pady=10)
 
 label_hn = tk.Label(tab1_5, text="Altitude:")
-label_hn.grid(row=1, column=4, padx=5, pady=10, sticky=tk.W)
+label_hn.grid(row=1, column=4, padx=10, pady=10, sticky=tk.W)
 hn_var = tk.StringVar(value="")
 entry_hn = tk.Entry(tab1_5, textvariable=hn_var, width=12)
 entry_hn.grid(row=1, column=5, padx=5, pady=10)
@@ -553,7 +553,7 @@ label_m = tk.Label(tab1_5, text="meters")
 label_m.grid(row=1, column=6, padx=5, pady=10, sticky=tk.W)
 
 label_vn = tk.Label(tab1_5, text="Velocity:")
-label_vn.grid(row=2, column=4, padx=5, pady=10, sticky=tk.W)
+label_vn.grid(row=2, column=4, padx=10, pady=10, sticky=tk.W)
 vn_var = tk.StringVar(value="")
 entry_vn = tk.Entry(tab1_5, textvariable=vn_var, width=12)
 entry_vn.grid(row=2, column=5, padx=5, pady=10)
@@ -561,7 +561,7 @@ label_ms = tk.Label(tab1_5, text="m/s")
 label_ms.grid(row=2, column=6, padx=5, pady=10, sticky=tk.W)
 
 label_mgn = tk.Label(tab1_5, text="Magnitude:")
-label_mgn.grid(row=3, column=4, padx=5, pady=10, sticky=tk.W)
+label_mgn.grid(row=3, column=4, padx=10, pady=10, sticky=tk.W)
 mgn_var = tk.StringVar(value="")
 entry_mgn = tk.Entry(tab1_5, textvariable=mgn_var, width=12)
 entry_mgn.grid(row=3, column=5, padx=5, pady=10)
@@ -572,7 +572,7 @@ heading_label2 = tk.Label(tab1_5, text="OUTPUT: Heating", font=("Arial", 14, "bo
 heading_label2.grid(row=4, column=4, columnspan=2, padx=5, pady=10)
 
 label_phn = tk.Label(tab1_5, text="Peak aerodynamic heat rate:")
-label_phn.grid(row=5, column=4, padx=5, pady=10, sticky=tk.W)
+label_phn.grid(row=5, column=4, padx=10, pady=10, sticky=tk.W)
 phn_var = tk.StringVar(value="")
 entry_phn = tk.Entry(tab1_5, textvariable=phn_var, width=12)
 entry_phn.grid(row=5, column=5, padx=5, pady=10)
@@ -580,7 +580,7 @@ label_phn = tk.Label(tab1_5, text="W/cm^2")
 label_phn.grid(row=5, column=6, padx=5, pady=10, sticky=tk.W)
 
 label_thn = tk.Label(tab1_5, text="Total Heat Load:")
-label_thn.grid(row=6, column=4, padx=5, pady=10, sticky=tk.W)
+label_thn.grid(row=6, column=4, padx=10, pady=10, sticky=tk.W)
 thn_var = tk.StringVar(value="")
 entry_thn = tk.Entry(tab1_5, textvariable=thn_var, width=12)
 entry_thn.grid(row=6, column=5, padx=5, pady=10)
@@ -638,14 +638,14 @@ for idx, option in enumerate(options):
 
 # Vertical line, tab 2
 separator = ttk.Separator(tab2, orient="vertical")
-separator.grid(row=0, column=3, rowspan=10, sticky="ns", padx=5)
+separator.grid(row=0, column=3, rowspan=10, sticky="ns", padx=20)
 
 # Content right, tab 2
 heading_label2 = tk.Label(tab2, text="OUTPUT: Min Delta V Solution", font=("Arial", 14, "bold"))
 heading_label2.grid(row=0, column=4, columnspan=2, padx=5, pady=10)
 
 label_rvm = tk.Label(tab2, text="Re-entry velocity:")
-label_rvm.grid(row=1, column=4, padx=5, pady=10, sticky=tk.W)
+label_rvm.grid(row=1, column=4, padx=10, pady=10, sticky=tk.W)
 rvm_var = tk.StringVar(value="")
 entry_rvm = tk.Entry(tab2, textvariable=rvm_var, width=12)
 entry_rvm.grid(row=1, column=5, padx=5, pady=10)
@@ -653,7 +653,7 @@ label_ms = tk.Label(tab2, text="m/s")
 label_ms.grid(row=1, column=6, padx=5, pady=10, sticky=tk.W)
 
 label_rgm = tk.Label(tab2, text="Re-entry gamma:")
-label_rgm.grid(row=2, column=4, padx=5, pady=10, sticky=tk.W)
+label_rgm.grid(row=2, column=4, padx=10, pady=10, sticky=tk.W)
 rgm_var = tk.StringVar(value="")
 entry_rgm = tk.Entry(tab2, textvariable=rgm_var, width=12)
 entry_rgm.grid(row=2, column=5, padx=5, pady=10)
@@ -661,7 +661,7 @@ label_deg = tk.Label(tab2, text="degrees")
 label_deg.grid(row=2, column=6, padx=5, pady=10, sticky=tk.W)
 
 label_rdm = tk.Label(tab2, text="Deorbit position:")
-label_rdm.grid(row=3, column=4, padx=5, pady=10, sticky=tk.W)
+label_rdm.grid(row=3, column=4, padx=10, pady=10, sticky=tk.W)
 rdm_var = tk.StringVar(value="")
 entry_rdm = tk.Entry(tab2, textvariable=rdm_var, width=12)
 entry_rdm.grid(row=3, column=5, padx=5, pady=10)
@@ -669,7 +669,7 @@ label_ms = tk.Label(tab2, text="meters")
 label_ms.grid(row=3, column=6, padx=5, pady=10, sticky=tk.W)
 
 label_dvm = tk.Label(tab2, text="Change in velocity:")
-label_dvm.grid(row=4, column=4, padx=5, pady=10, sticky=tk.W)
+label_dvm.grid(row=4, column=4, padx=10, pady=10, sticky=tk.W)
 dvm_var = tk.StringVar(value="")
 entry_dvm = tk.Entry(tab2, textvariable=dvm_var, width=12)
 entry_dvm.grid(row=4, column=5, padx=5, pady=10)
@@ -680,7 +680,7 @@ heading_label2 = tk.Label(tab2, text="OUTPUT: Corridor Boundaries", font=("Arial
 heading_label2.grid(row=5, column=4, columnspan=2, padx=5, pady=10)
 
 label_rgu = tk.Label(tab2, text="Undershoot flight path angle:")
-label_rgu.grid(row=6, column=4, padx=5, pady=10, sticky=tk.W)
+label_rgu.grid(row=6, column=4, padx=10, pady=10, sticky=tk.W)
 rgu_var = tk.StringVar(value="")
 entry_rgu = tk.Entry(tab2, textvariable=rgu_var, width=12)
 entry_rgu.grid(row=6, column=5, padx=5, pady=10)
@@ -688,7 +688,7 @@ label_deg = tk.Label(tab2, text="degrees")
 label_deg.grid(row=6, column=6, padx=5, pady=10, sticky=tk.W)
 
 label_rgo = tk.Label(tab2, text="Overshoot flight path angle:")
-label_rgo.grid(row=7, column=4, padx=5, pady=10, sticky=tk.W)
+label_rgo.grid(row=7, column=4, padx=10, pady=10, sticky=tk.W)
 rgo_var = tk.StringVar(value="")
 entry_rgo = tk.Entry(tab2, textvariable=rgo_var, width=12)
 entry_rgo.grid(row=7, column=5, padx=5, pady=10)
@@ -737,9 +737,9 @@ entry_bt.grid(row=6, column=1, padx=5, pady=10)
 label_b = tk.Label(tab3, text="kg/m^2")
 label_b.grid(row=6, column=2, padx=5, pady=10, sticky=tk.W)
 
-# Vertical line, tab 1
+# Vertical line, tab 3
 separator = ttk.Separator(tab3, orient="vertical")
-separator.grid(row=0, column=3, rowspan=7, sticky="ns", padx=5)
+separator.grid(row=0, column=3, rowspan=7, sticky="ns", padx=20)
 
 label_rv = tk.Label(tab3, text="range: 7.9 to 13.0", font=("Arial", 10))
 label_rv.grid(row=3, column=1, padx=5, pady=0, sticky=tk.W)
