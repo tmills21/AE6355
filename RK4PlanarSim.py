@@ -201,7 +201,7 @@ class RK4Planar:
         ax.plot(tHistory, qstag)
         ax.set_xlabel('Time (s)')
         ax.set_ylabel('Convective Stagnation-Point Heat Rate ' + r'$\text{(W/cm}^2 \text{)}$')
-        ax.set_title('Aerodynamic Heat Rate')
+        ax.set_title('Aerodynamic Heat Rate - Planar')
         
         return [qstag, fig]
     
@@ -219,7 +219,7 @@ class RK4Planar:
         ax.plot(tHistory, qtotal)
         ax.set_xlabel('Time (s)')
         ax.set_ylabel('Stagnation-Point Integrated-Heat Rate ' + r'$\text{(J/cm}^2 \text{)}$')
-        ax.set_title('Total Heat Rate')
+        ax.set_title('Total Heat Rate - Planar')
         
         return [qtotal, fig]
 

@@ -16,10 +16,10 @@ class RK4Nonplanar:
         self.psi = np.radians(psi) # degrees to raidans
 
         # longitude
-        self.theta = theta
+        self.theta = np.radians(theta) # degrees to raidans
 
         # latitude
-        self.phi = phi
+        self.phi = np.radians(phi) # degrees to raidans
 
         # thrust force
         self.T = T 
@@ -267,7 +267,7 @@ class RK4Nonplanar:
         ax.plot(tHistory, qstag)
         ax.set_xlabel('Time (s)')
         ax.set_ylabel('Convective Stagnation-Point Heat Rate ' + r'$\text{(W/cm}^2 \text{)}$')
-        ax.set_title('Aerodynamic Heat Rate')
+        ax.set_title('Aerodynamic Heat Rate - Nonplanar')
         
         return [qstag, fig]
     
@@ -285,7 +285,7 @@ class RK4Nonplanar:
         ax.plot(tHistory, qtotal)
         ax.set_xlabel('Time (s)')
         ax.set_ylabel('Stagnation-Point Integrated-Heat Rate ' + r'$\text{(J/cm}^2 \text{)}$')
-        ax.set_title('Total Heat Rate')
+        ax.set_title('Total Heat Rate - Nonplanar')
         
         return [qtotal, fig]
 

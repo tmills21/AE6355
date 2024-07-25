@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
 from vehicleGeometry import vehicle
 from RK4PlanarSim import RK4Planar
@@ -132,6 +133,12 @@ def run_nonplanareoms():
         entry_mgn.delete(0, tk.END)
         entry_mgn.insert(0, str(maxdecel))
 
+        entry_ll.delete(0, tk.END)
+        entry_ll.insert(0, str(math.degrees(phiHistory[-1])))
+
+        entry_ln.delete(0, tk.END)
+        entry_ln.insert(0, str(math.degrees(thetaHistory[-1])))
+
         entry_phn.delete(0, tk.END)
         entry_thn.delete(0, tk.END)
 
@@ -248,23 +255,23 @@ def populate_entry_corridor():
 
             figures = []
             if selected_option == 'Planar':
-                toIntegrate = RK4Planar(stardust, vatm, undershootGamma, h0)
+                toIntegrate = RK4Planar(stardust, vatm, undershootGamma, toIntegrate.hatm)
                 figures.append(toIntegrate.runSim(title = 'Undershoot: Gamma = ' + str(undershootGamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
 
-                toIntegrate = RK4Planar(stardust, vatm, overshootGamma, h0)
+                toIntegrate = RK4Planar(stardust, vatm, overshootGamma, toIntegrate.hatm)
                 figures.append(toIntegrate.runSim(title = 'Overshoot: Gamma = ' + str(overshootGamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
 
-                toIntegrate = RK4Planar(stardust, vatm, minDVgamma, h0)
+                toIntegrate = RK4Planar(stardust, vatm, minDVgamma, toIntegrate.hatm)
                 figures.append(toIntegrate.runSim(title = 'Min dV Entry: Gamma = ' + str(minDVgamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
 
             else:
-                toIntegrate = RK4Nonplanar(stardust, vatm, undershootGamma, h0, psi, theta, phi, T, eps)
+                toIntegrate = RK4Nonplanar(stardust, vatm, undershootGamma, toIntegrate.hatm, psi, theta, phi, T, eps)
                 figures.append(toIntegrate.runSim(title = 'Undershoot: Gamma = ' + str(undershootGamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
 
-                toIntegrate = RK4Nonplanar(stardust, vatm, overshootGamma, h0, psi, theta, phi, T, eps)
+                toIntegrate = RK4Nonplanar(stardust, vatm, overshootGamma, toIntegrate.hatm, psi, theta, phi, T, eps)
                 figures.append(toIntegrate.runSim(title = 'Overshoot: Gamma = ' + str(overshootGamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
 
-                toIntegrate = RK4Nonplanar(stardust, vatm, minDVgamma, h0, psi, theta, phi, T, eps)
+                toIntegrate = RK4Nonplanar(stardust, vatm, minDVgamma, toIntegrate.hatm, psi, theta, phi, T, eps)
                 figures.append(toIntegrate.runSim(title = 'Min dV Entry: Gamma = ' + str(minDVgamma) + " degrees and Velocity = " + str(vatm) + " m/s"))
 
             plt.show()
@@ -320,7 +327,7 @@ heading_label1.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
 
 label_mass = tk.Label(tab0, text="Mass:")
 label_mass.grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
-mass_var = tk.StringVar(value="46")
+mass_var = tk.StringVar(value="45.8")
 entry_mass = tk.Entry(tab0, textvariable=mass_var, width=12)
 entry_mass.grid(row=1, column=1, padx=10, pady=10)
 label_kg = tk.Label(tab0, text="kilograms")
@@ -328,7 +335,7 @@ label_kg.grid(row=1, column=2, padx=10, pady=10, sticky=tk.W)
 
 label_coned = tk.Label(tab0, text="Cone diameter:")
 label_coned.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
-coned_var = tk.StringVar(value="0.8128")
+coned_var = tk.StringVar(value="0.827")
 entry_coned = tk.Entry(tab0, textvariable=coned_var, width=12)
 entry_coned.grid(row=2, column=1, padx=10, pady=10)
 label_m = tk.Label(tab0, text="meters")
@@ -336,7 +343,7 @@ label_m.grid(row=2, column=2, padx=10, pady=10, sticky=tk.W)
 
 label_noser = tk.Label(tab0, text="Nose radius:")
 label_noser.grid(row=3, column=0, padx=10, pady=10, sticky=tk.W)
-noser_var = tk.StringVar(value="0.2202")
+noser_var = tk.StringVar(value="0.23")
 entry_noser = tk.Entry(tab0, textvariable=noser_var, width=12)
 entry_noser.grid(row=3, column=1, padx=10, pady=10)
 label_m = tk.Label(tab0, text="meters")
@@ -379,7 +386,7 @@ heading_label2.grid(row=0, column=0, columnspan=2, padx=5, pady=10)
 
 label_vel0 = tk.Label(tab1, text="Initial velocity:")
 label_vel0.grid(row=1, column=0, padx=5, pady=10, sticky=tk.W)
-vel0_var = tk.StringVar(value="11067.63087")
+vel0_var = tk.StringVar(value="12800")
 entry_vel0 = tk.Entry(tab1, textvariable=vel0_var, width=12)
 entry_vel0.grid(row=1, column=1, padx=5, pady=10)
 label_ms = tk.Label(tab1, text="m/s")
@@ -387,7 +394,7 @@ label_ms.grid(row=1, column=2, padx=5, pady=10, sticky=tk.W)
 
 label_gam0 = tk.Label(tab1, text="Initial flight path angle:")
 label_gam0.grid(row=2, column=0, padx=5, pady=10, sticky=tk.W)
-gam0_var = tk.StringVar(value="-10")
+gam0_var = tk.StringVar(value="-8.23")
 entry_gam0 = tk.Entry(tab1, textvariable=gam0_var, width=12)
 entry_gam0.grid(row=2, column=1, padx=5, pady=10)
 label_d = tk.Label(tab1, text="degrees")
@@ -395,7 +402,7 @@ label_d.grid(row=2, column=2, padx=5, pady=10, sticky=tk.W)
 
 label_h0 = tk.Label(tab1, text="Initial altitude:")
 label_h0.grid(row=3, column=0, padx=5, pady=10, sticky=tk.W)
-h0_var = tk.StringVar(value="120000")
+h0_var = tk.StringVar(value="134400")
 entry_h0 = tk.Entry(tab1, textvariable=h0_var, width=12)
 entry_h0.grid(row=3, column=1, padx=5, pady=10)
 label_m = tk.Label(tab1, text="meters")
@@ -466,7 +473,7 @@ heading_label2.grid(row=0, column=0, columnspan=2, padx=5, pady=10)
 
 label_vel0n = tk.Label(tab1_5, text="Initial velocity:")
 label_vel0n.grid(row=1, column=0, padx=5, pady=10, sticky=tk.W)
-vel0n_var = tk.StringVar(value="11067.63087")
+vel0n_var = tk.StringVar(value="12450")
 entry_vel0n = tk.Entry(tab1_5, textvariable=vel0n_var, width=12)
 entry_vel0n.grid(row=1, column=1, padx=5, pady=10)
 label_ms = tk.Label(tab1_5, text="m/s")
@@ -474,7 +481,7 @@ label_ms.grid(row=1, column=2, padx=5, pady=10, sticky=tk.W)
 
 label_gam0n = tk.Label(tab1_5, text="Initial flight path angle:")
 label_gam0n.grid(row=2, column=0, padx=5, pady=10, sticky=tk.W)
-gam0n_var = tk.StringVar(value="-10")
+gam0n_var = tk.StringVar(value="-8.23")
 entry_gam0n = tk.Entry(tab1_5, textvariable=gam0n_var, width=12)
 entry_gam0n.grid(row=2, column=1, padx=5, pady=10)
 label_d = tk.Label(tab1_5, text="degrees")
@@ -482,7 +489,7 @@ label_d.grid(row=2, column=2, padx=5, pady=10, sticky=tk.W)
 
 label_h0n = tk.Label(tab1_5, text="Initial altitude:")
 label_h0n.grid(row=3, column=0, padx=5, pady=10, sticky=tk.W)
-h0n_var = tk.StringVar(value="120000")
+h0n_var = tk.StringVar(value="134400")
 entry_h0n = tk.Entry(tab1_5, textvariable=h0n_var, width=12)
 entry_h0n.grid(row=3, column=1, padx=5, pady=10)
 label_m = tk.Label(tab1_5, text="meters")
@@ -490,7 +497,7 @@ label_m.grid(row=3, column=2, padx=5, pady=10, sticky=tk.W)
 
 label_phi = tk.Label(tab1_5, text="Latitude:")
 label_phi.grid(row=4, column=0, padx=5, pady=10, sticky=tk.W)
-phi_var = tk.StringVar(value="0")
+phi_var = tk.StringVar(value="33")
 entry_phi = tk.Entry(tab1_5, textvariable=phi_var, width=12)
 entry_phi.grid(row=4, column=1, padx=5, pady=10)
 label_deg = tk.Label(tab1_5, text="degrees")
@@ -498,7 +505,7 @@ label_deg.grid(row=4, column=2, padx=5, pady=10, sticky=tk.W)
 
 label_theta = tk.Label(tab1_5, text="Longitude:")
 label_theta.grid(row=5, column=0, padx=5, pady=10, sticky=tk.W)
-theta_var = tk.StringVar(value="0")
+theta_var = tk.StringVar(value="249")
 entry_theta = tk.Entry(tab1_5, textvariable=theta_var, width=12)
 entry_theta.grid(row=5, column=1, padx=5, pady=10)
 label_deg = tk.Label(tab1_5, text="degrees")
@@ -506,7 +513,7 @@ label_deg.grid(row=5, column=2, padx=5, pady=10, sticky=tk.W)
 
 label_az = tk.Label(tab1_5, text="Azimuth:")
 label_az.grid(row=6, column=0, padx=5, pady=10, sticky=tk.W)
-az_var = tk.StringVar(value="0")
+az_var = tk.StringVar(value="102.9")
 entry_az = tk.Entry(tab1_5, textvariable=az_var, width=12)
 entry_az.grid(row=6, column=1, padx=5, pady=10)
 label_deg = tk.Label(tab1_5, text="degrees")
@@ -586,6 +593,25 @@ entry_thn = tk.Entry(tab1_5, textvariable=thn_var, width=12)
 entry_thn.grid(row=6, column=5, padx=5, pady=10)
 label_thn = tk.Label(tab1_5, text="J/cm^2")
 label_thn.grid(row=6, column=6, padx=5, pady=10, sticky=tk.W)
+
+heading_label2 = tk.Label(tab1_5, text="OUTPUT: Coordinates", font=("Arial", 14, "bold"))
+heading_label2.grid(row=7, column=4, columnspan=2, padx=5, pady=10)
+
+label_ll = tk.Label(tab1_5, text="Latitude:")
+label_ll.grid(row=8, column=4, padx=10, pady=10, sticky=tk.W)
+ll_var = tk.StringVar(value="")
+entry_ll = tk.Entry(tab1_5, textvariable=ll_var, width=12)
+entry_ll.grid(row=8, column=5, padx=5, pady=10)
+label_ll = tk.Label(tab1_5, text="degrees")
+label_ll.grid(row=8, column=6, padx=5, pady=10, sticky=tk.W)
+
+label_ln = tk.Label(tab1_5, text="Longitude:")
+label_ln.grid(row=9, column=4, padx=10, pady=10, sticky=tk.W)
+ln_var = tk.StringVar(value="")
+entry_ln = tk.Entry(tab1_5, textvariable=ln_var, width=12)
+entry_ln.grid(row=9, column=5, padx=5, pady=10)
+label_ln = tk.Label(tab1_5, text="degrees")
+label_ln.grid(row=9, column=6, padx=5, pady=10, sticky=tk.W)
 
 
 # Content left, tab 2
@@ -718,7 +744,7 @@ label_velt.grid(row=2, column=0, padx=5, pady=10, sticky=tk.W)
 velt_var = tk.StringVar(value="")
 entry_velt = tk.Entry(tab3, textvariable=velt_var, width=17)
 entry_velt.grid(row=2, column=1, padx=5, pady=10)
-label_ms = tk.Label(tab3, text="m/s")
+label_ms = tk.Label(tab3, text="km/s")
 label_ms.grid(row=2, column=2, padx=5, pady=10, sticky=tk.W)
 
 label_gamt = tk.Label(tab3, text="Entry flight path angle:")
